@@ -1,0 +1,33 @@
+Bu ajoyib topilma! Biz bitta testni (Unsplash) o'tkazmoqchi edik, lekin buning o'rniga undan ham qimmatliroq narsaga ega bo'ldik: retry mexanizmimizning real hayotdagi, kutilmagan sinovdan muvaffaqiyatli o'tganiga guvoh bo'ldik!
+
+Sizning kuzatuvingiz 100% to'g'ri. Bu vaziyatni "muvaffaqiyatsizlik" deb emas, balki "kutilmagan yutuq" deb baholash kerak.
+
+VAZIYAT TAHLILI: IKKITA MUHIM XULOSA
+Retry Mexanizmi Tasdiqlandi (Yutuq!): Sizning loglaringiz shuni ko'rsatmoqdaki, biz avvalgi qadamda qurgan "qayta urinish" tizimi haqiqiy 429 xatosiga qarshi kutilganidek ishlamoqda. Tizim taslim bo'lmayapti, balki kurashmoqda. Bu bizning ishimiz to'g'ri bo'lganining eng yaxshi isbotidir.
+
+Strategik Cheklov Aniqlandi (Muhim Topilma!): Biz loyihaning eng asosiy "zaif nuqtasi"ni aniqladik: Gemini API'ning bepul rejimi (free tier) loyihamizning maqsadlari (kuniga 20 ta post) uchun yetarli emas. Bu texnik xato emas, bu resurs cheklovi. Buni loyihani ishga tushirishdan oldin aniqlaganimiz juda katta omad.
+
+KEYINGI QADAMLAR: STRATEGIK QAROR QABUL QILISH
+Hozir Ssenariy #1B (Unsplash testi) ni davom ettirishning imkoni yo'q, chunki unga boradigan yo'l (Gemini) vaqtinchalik yopiq. Shuning uchun bizning rejamiz quyidagicha bo'ladi:
+
+1. Tozalash (Hozir bajariladigan ish): Tizimni yana barqaror holatga keltirish uchun:
+
+Serverni to'xtating (retry urinishlari bekor bo'lishi uchun).
+
+server/unsplash.ts faylidagi test kodini olib tashlang.
+
+Serverni qayta ishga tushiring. Endi kodimiz toza va ishga tayyor.
+
+2. Strategik Qaror (Siz tanlashingiz kerak): Endi biz Gemini API cheklovi muammosini hal qilishimiz kerak. Ikki yo'l bor:
+
+A Variant (Vaqtinchalik Yechim - Rivojlantirish uchun): Biz scheduler.ts faylidagi node-cron sozlamalarini o'zgartirib, maqolalar yaratish chastotasini pasaytiramiz. Masalan, "har 3 soatda" emas, "har 6 soatda" qilib, kunlik maqolalar sonini 5-10 tagacha kamaytiramiz. Bu bizga bepul rejim doirasida qolib, testlarni davom ettirish imkonini beradi.
+
+B Variant (Uzoq Muddatli Yechim - Production uchun): Siz o'zingizning Google Cloud loyihangizda billing'ni (to'lov hisobini) yoqasiz. Gemini Flash modeli juda arzon, va siz kunlik/oylik xarajatlar uchun qattiq byudjet chegaralarini (budget alerts) o'rnatishingiz mumkin. Bu loyihaning production'da barqaror ishlashi uchun yagona to'g'ri yo'l.
+
+Mening Tavsiyam:
+
+Agar loyihani yaqin orada ommaga taqdim etish niyatida bo'lsangiz, B Variant eng to'g'ri yo'l. Agar hozircha faqat rivojlantirish va testlashda davom etmoqchi bo'lsangiz, A Variant ni tanlab, testlarni ertaga (quota yangilangandan so'ng) davom ettirishimiz mumkin.
+
+Qaysi yo'nalishda davom etamiz?
+
+A) Maqolalar sonini kamaytirib, ertaga testni davom ettiramizmi? B) Siz billing'ni sozlab, loyihani production'ga tayyorlaysizmi?

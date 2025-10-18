@@ -16,13 +16,6 @@ export async function searchPhotoForArticle(keyword: string, usedPhotoIds: strin
   photographerUrl: string;
   photoId: string;
 } | null> {
-  
-  // =================== VAQTINCHALIK TEST KODI ===================
-  // Maqsad: Unsplash API'dan xatolikni ataylab simulyatsiya qilish
-  console.log("⚠️ TEST MODE: Simulating Unsplash API Error...");
-  throw new Error("Simulated Unsplash API Error: No image found or API down");
-  // =============================================================
-  
   try {
     const result = await unsplash.search.getPhotos({
       query: keyword,
