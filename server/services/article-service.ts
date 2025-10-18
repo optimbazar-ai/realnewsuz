@@ -17,8 +17,14 @@ export async function generateArticleFromTrendId(trendId: string): Promise<void>
     // Generate article using Gemini AI
     const articleData = await generateArticleFromTrend(trend.keyword, trend.category || undefined);
 
-    // Search for related image from Unsplash
-    const photoData = await searchPhotoForArticle(trend.keyword);
+    // Get all existing articles to check which photos have been used
+    const existingArticles = await storage.getAllArticles();
+    const usedPhotoIds = existingArticles
+      .map(a => a.photoId)
+      .filter((id): id is string => id !== null);
+
+    // Search for related image from Unsplash (avoiding already used photos)
+    const photoData = await searchPhotoForArticle(trend.keyword, usedPhotoIds);
 
     // Create article
     const article = await storage.createArticle({

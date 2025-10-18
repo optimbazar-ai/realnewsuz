@@ -10,7 +10,7 @@ const unsplash = createApi({
   fetch: nodeFetch as any,
 });
 
-export async function searchPhotoForArticle(keyword: string): Promise<{
+export async function searchPhotoForArticle(keyword: string, usedPhotoIds: string[] = []): Promise<{
   imageUrl: string;
   photographerName: string;
   photographerUrl: string;
@@ -20,7 +20,7 @@ export async function searchPhotoForArticle(keyword: string): Promise<{
     const result = await unsplash.search.getPhotos({
       query: keyword,
       page: 1,
-      perPage: 1,
+      perPage: 10,
       orientation: "landscape",
     });
 
@@ -29,7 +29,17 @@ export async function searchPhotoForArticle(keyword: string): Promise<{
       return null;
     }
 
-    const photo = result.response.results[0];
+    const availablePhotos = result.response.results.filter(
+      photo => !usedPhotoIds.includes(photo.id)
+    );
+
+    if (availablePhotos.length === 0) {
+      console.log("All photos for this keyword are already used, getting random photo");
+      return await getRandomPhoto(keyword);
+    }
+
+    const randomIndex = Math.floor(Math.random() * availablePhotos.length);
+    const photo = availablePhotos[randomIndex];
 
     await unsplash.photos.trackDownload({
       downloadLocation: photo.links.download_location,
