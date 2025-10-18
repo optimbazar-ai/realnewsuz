@@ -165,10 +165,35 @@ export default function ArticleDetail() {
 
                 {/* Featured image */}
                 {article.imageUrl && (
-                  <div 
-                    className="w-full aspect-[16/9] bg-cover bg-center rounded-lg mb-8 border border-border"
-                    style={{ backgroundImage: `url(${article.imageUrl})` }}
-                  />
+                  <div className="mb-8">
+                    <div 
+                      className="w-full aspect-[16/9] bg-cover bg-center rounded-lg border border-border"
+                      style={{ backgroundImage: `url(${article.imageUrl})` }}
+                    />
+                    {article.photographerName && (
+                      <p className="text-xs text-muted-foreground mt-2 text-right">
+                        Rasm:{" "}
+                        <a 
+                          href={article.photographerUrl || "#"}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="hover:underline"
+                          data-testid="link-photographer"
+                        >
+                          {article.photographerName}
+                        </a>
+                        {" "}/{" "}
+                        <a 
+                          href="https://unsplash.com?utm_source=real_news&utm_medium=referral"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="hover:underline"
+                        >
+                          Unsplash
+                        </a>
+                      </p>
+                    )}
+                  </div>
                 )}
 
                 {/* Article content */}
