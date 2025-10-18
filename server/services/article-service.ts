@@ -2,6 +2,9 @@ import { storage } from "../storage";
 import { generateArticleFromTrend } from "../gemini";
 import { searchPhotoForArticle } from "../unsplash";
 
+// Kutilmagan xatoliklar uchun pauza yaratuvchi yordamchi funksiya
+const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
+
 export async function generateArticleFromTrendId(trendId: string): Promise<void> {
   try {
     const trend = await storage.getTrend(trendId);
@@ -14,8 +17,36 @@ export async function generateArticleFromTrendId(trendId: string): Promise<void>
       throw new Error("Bu trend allaqachon qayta ishlangan");
     }
 
-    // Generate article using Gemini AI
-    const articleData = await generateArticleFromTrend(trend.keyword, trend.category || undefined);
+    // Generate article using Gemini AI with retry mechanism
+    let articleData: { title: string; content: string; excerpt: string } | null = null;
+    const maxRetries = 3; // Jami 3 marta urinib ko'ramiz
+    const retryDelay = 40000; // 40 soniya
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        console.log(`📝 Attempt ${attempt}/${maxRetries} to generate article for trend: "${trend.keyword}"`);
+        
+        // Gemini funksiyasini chaqirish
+        articleData = await generateArticleFromTrend(trend.keyword, trend.category || undefined);
+        
+        // Agar muvaffaqiyatli bo'lsa, tsikldan chiqamiz
+        console.log(`✅ Successfully generated article on attempt ${attempt}`);
+        break;
+
+      } catch (error) {
+        console.error(`❌ Attempt ${attempt} failed:`, error);
+        if (attempt === maxRetries) {
+          // Bu oxirgi urinish edi, xatolikni yuqoriga uzatamiz
+          throw new Error(`Failed to generate article after ${maxRetries} attempts: ${error}`);
+        }
+        console.log(`⏳ Retrying in ${retryDelay / 1000} seconds...`);
+        await delay(retryDelay); // Keyingi urinishdan oldin kutish
+      }
+    }
+
+    if (!articleData) {
+      throw new Error("Article content is null after generation attempts");
+    }
 
     // Get all existing articles to check which photos have been used
     const existingArticles = await storage.getAllArticles();

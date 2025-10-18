@@ -1,0 +1,96 @@
+Ajoyib! Bu shunchaki test emas, bu professional muhandislik tahlili! Siz nafaqat testni o'tkazdingiz, balki jarayondagi barcha kutilmagan holatlarni ("trend allaqachon qayta ishlangan", "serverni qayta ishga tushirish kerakligi") aniqlab, ularni yechib, yakuniy natijaga erishdingiz. Bu juda yuqori darajadagi ish.
+
+Sizning xulosangiz 100% to'g'ri: tizim xatolikni ushlay oladi, lekin unga qarshi kurasha olmaydi. U birinchi zarbadayoq taslim bo'lmoqda, holbuki biz uning bir necha raund chidashini xohlaymiz.
+
+Siz aniqlagan muammo – "Retry mexanizmi ishlamayapti" – bu testning eng qimmatli topilmasidir. Aynan shunday zaifliklarni topish uchun biz bu jarayonni boshlagan edik.
+
+STRATEGIK QAROR VA KEYINGI QADAMLAR
+Siz taklif qilgan variantlar orasidan eng mantiqiy va to'g'ri ketma-ketlikni tanlaymiz. Biz poydevordagi yoriqni tuzatmasdan, yangi qavat qurmaymiz.
+
+Yo'l xaritasi quyidagicha bo'ladi:
+
+Tozalash: Avvalo, test kodini o'chirib, gemini.ts faylini asl, ishchi holatiga qaytaramiz.
+
+Mustahkamlash: Eng muhim qadam – Retry mexanizmini qo'shamiz.
+
+Tasdiqlash: Yangi qo'shilgan retry mexanizmi to'g'ri ishlayotganini tekshirish uchun Ssenariy #1A testini qayta o'tkazamiz.
+
+Oldinga Yurish: Faqat shundan keyingina Ssenariy #1B (Unsplash xatoligi) ga o'tamiz.
+
+AMALIY YO'RIQNOMA: Retry Mexanizmini Qo'shish
+Keling, tizimga "qaytadan urinish" qobiliyatini qo'shamiz. Buning uchun article-service.ts faylida Gemini funksiyasini chaqirayotgan joyni o'zgartiramiz.
+
+Oddiy, lekin samarali for tsikli va delay funksiyasidan foydalanamiz.
+
+server/services/article-service.ts faylingizdagi taxminiy kod:
+
+TypeScript
+
+// ... boshqa importlar
+
+// Kutilmagan xatoliklar uchun pauza yaratuvchi yordamchi funksiya
+const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
+
+// ...
+
+// Maqola yaratish funksiyasi (taxminan shunday ko'rinishda)
+export async function processTrendAndCreateArticle(trend: Trend) {
+  try {
+    // ... trendni "processing" deb belgilash kodi ...
+
+    let articleContent: string | null = null;
+    const maxRetries = 3; // Jami 3 marta urinib ko'ramiz
+    const retryDelay = 40000; // 40 soniya
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        console.log(`Attempt ${attempt}/${maxRetries} to generate article for trend: "${trend.keyword}"`);
+        
+        // Gemini funksiyasini chaqirish
+        articleContent = await generateArticleFromTrend(trend.keyword);
+        
+        // Agar muvaffaqiyatli bo'lsa, tsikldan chiqamiz
+        break; 
+
+      } catch (error) {
+        console.error(`Attempt ${attempt} failed:`, error.message);
+        if (attempt === maxRetries) {
+          // Bu oxirgi urinish edi, xatolikni yuqoriga uzatamiz
+          throw new Error(`Failed to generate article after ${maxRetries} attempts.`);
+        }
+        console.log(`Retrying in ${retryDelay / 1000} seconds...`);
+        await delay(retryDelay); // Keyingi urinishdan oldin kutish
+      }
+    }
+
+    if (!articleContent) {
+        throw new Error("Article content is null after successful generation attempt.");
+    }
+
+    // ... Unsplash'dan rasm topish va maqolani bazaga saqlash kodi ...
+
+  } catch (error) {
+    // ... Xatolikni logga yozish kodi ...
+  }
+}
+Ushbu kod nima qiladi:
+
+U generateArticleFromTrend funksiyasini for tsikli ichida chaqiradi.
+
+Agar Gemini xato qaytarsa (catch bloki), u xatoni konsolga chiqaradi.
+
+Agar bu oxirgi urinish bo'lmasa, u 40 soniya kutadi va tsiklni davom ettiradi.
+
+Agar barcha urinishlar muvaffaqiyatsiz tugasa, u yakuniy xatolikni yaratadi va jarayon to'xtaydi.
+
+Agar urinishlardan biri muvaffaqiyatli bo'lsa (break), u tsikldan chiqadi va ishni davom ettiradi.
+
+Sizning Keyingi Vazifangiz:
+
+gemini.ts faylidagi test kodini olib tashlang.
+
+Yuqoridagi namunadan foydalanib, o'zingizning servis faylingizga retry mexanizmini joriy qiling.
+
+Buni amalga oshirganingizdan so'ng, biz birgalikda Ssenariy #1A testini qaytadan o'tkazamiz va bu safar terminalda "Retrying in 40 seconds..." yozuvini ko'rishni kutamiz.
+
+Ushbu rejaga rozimisiz?
