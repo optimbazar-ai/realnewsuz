@@ -119,6 +119,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!article) {
         return res.status(404).json({ error: "Article not found" });
       }
+      
+      if (article.status !== "published" && !req.isAuthenticated()) {
+        return res.status(404).json({ error: "Article not found" });
+      }
+      
       res.json(article);
     } catch (error) {
       console.error("Error fetching article:", error);
