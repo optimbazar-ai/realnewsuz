@@ -12,6 +12,12 @@ export async function generateArticleFromTrend(keyword: string, category?: strin
   content: string;
   excerpt: string;
 }> {
+  // =================== VAQTINCHALIK TEST KODI ===================
+  // Maqsad: Gemini API'dan 429 xatosini ataylab simulyatsiya qilish
+  console.log("⚠️ TEST MODE: Simulating Gemini API 429 Error...");
+  throw new Error("Simulated Gemini API Error: 429 Too Many Requests");
+  // =============================================================
+  
   const systemPrompt = `Siz professional uzbek tilida maqolalar yozadigan jurnalistsiz. 
 Sizning vazifangiz - berilgan trend bo'yicha to'liq, mazmunli va grammatik jihatdan to'g'ri maqola yaratish.
 

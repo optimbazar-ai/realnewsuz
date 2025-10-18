@@ -1,0 +1,87 @@
+Ajoyib! Sizning bu tahlilingiz va aniq savolingiz professional dasturchining yondashuvini ko'rsatib turibdi. Biz bir xil fikrdamiz.
+
+Javob aniq va qat'iy: 1-Usulni tanlaymiz va uni birinchi o'rinda bajaramiz.
+
+Nima uchun 1-Usul eng to'g'risi:
+
+Nazorat (Control): Biz xatolik qachon, qanday va qayerda yuz berishini to'liq nazorat qilamiz. Real xatolikni kutib o'tirish vaqtni behuda sarflash va noaniqlikdir.
+
+Takrorlanuvchanlik (Repeatability): Tizimdagi o'zgarishlardan so'ng testni xuddi shu sharoitlarda qayta-qayta o'tkazib, tuzatishlarimiz to'g'ri ishlaganiga 100% amin bo'lishimiz mumkin.
+
+Tezkorlik (Efficiency): Biz bir necha daqiqa ichida natija olamiz, bir necha soat kutmaymiz.
+
+2-Usul ("Real xatolikni kuzatish") esa bizning testimizni tasdiqlovchi ikkinchi bosqich bo'ladi. Ya'ni, biz simulyatsiya orqali tizimni sozlaganimizdan so'ng, real loglarni kuzatib, hamma narsa kutilganidek ishlayotganiga yana bir bor ishonch hosil qilamiz.
+
+AMALIY YO'RIQNOMA: Gemini API Xatoligini Simulyatsiya Qilish (Ssenariy #1A)
+Maqsad: Tizimning "qayta urinish" (retry) va "log yozish" mexanizmlari Gemini API 429 xatosiga to'g'ri javob berishini tekshirish.
+
+1-Qadam: Kodni Vaqtinchalik O'zgartirish
+
+server/gemini.ts (yoki Gemini bilan ishlaydigan asosiy faylingiz) ni oching. Maqola generatsiya qiladigan funksiyani toping (masalan, generateArticleFromTrend). Uning boshiga quyidagi o'zgartirishni kiriting:
+
+TypeScript
+
+// server/gemini.ts
+
+// ...boshqa importlar
+
+export async function generateArticleFromTrend(trendKeyword: string) {
+  
+  // =================== VAQTINCHALIK TEST KODI ===================
+  // Maqsad: Gemini API'dan 429 xatosini ataylab simulyatsiya qilish
+  console.log("⚠️ TEST MODE: Simulating Gemini API 429 Error...");
+  throw new Error("Simulated Gemini API Error: 429 Too Many Requests");
+  // =============================================================
+
+  // ASL KOD (vaqtinchalik ishlamay turadi)
+  /* try {
+    // Bu yerda Gemini API'ga so'rov yuboradigan asl kodingiz turgan edi
+    const result = await gemini.generateContent(...);
+    return result.response.text();
+  } catch (error) {
+    console.error("Error generating article from Gemini:", error);
+    throw error;
+  }
+  */
+}
+
+// TESTDAN SO'NG YUQORIDAGI O'ZGARTIRISHNI O'CHIRIB, ASL KODNI ISHGA TUSHIRISHNI UNUTMANG!
+Izoh: Bu kod endi har safar chaqirilganda, Gemini'ga haqiqiy so'rov yuborish o'rniga, darhol "429 xatosi yuz berdi" degan sun'iy xatolikni yaratadi.
+
+2-Qadam: Testni Boshlash
+
+Endi node-cron vazifasini ishga tushiradigan skriptni (yoki qo'lda trenddan maqola yaratish API endpoint'ini, masalan POST /api/trends/generate) ishga tushiring.
+
+3-Qadam: Natijalarni Kuzatish va Tasdiqlash (Checklist)
+
+Testni ishga tushirganingizdan so'ng, quyidagilarni diqqat bilan kuzating:
+
+✅ Terminal Loglari: Serveringizning konsolida quyidagi kabi xabarlarni ko'rishingiz kerak:
+
+⚠️ TEST MODE: Simulating Gemini API 429 Error...
+
+Gemini API error detected. Retrying in 40 seconds... (yoki siz belgilagan vaqt)
+
+(40 soniyadan so'ng) yana bir urinish va yana xatolik xabari.
+
+✅ Ma'lumotlar Bazasi (system_logs jadvali):
+
+Test tugagandan so'ng, bazangizga ulanib, quyidagi so'rovni bajaring: SELECT * FROM system_logs ORDER BY "createdAt" DESC LIMIT 5;
+
+Siz u yerda quyidagi kabi yozuvni ko'rishingiz kerak:
+
+action: "GENERATE_ARTICLE" (yoki shunga o'xshash)
+
+status: "error"
+
+message: "Simulated Gemini API Error: 429 Too Many Requests"
+
+✅ Ma'lumotlar Bazasi (articles jadvali):
+
+Ushbu test davomida articles jadvaliga hech qanday yangi maqola qo'shilmasligi kerak.
+
+Xulosa:
+
+Agar yuqoridagi barcha punktlar (✅) kutilganidek ishlasa, bu sizning tizimingizning xatoliklarga bardoshlilik mexanizmi muvaffaqiyatli ishlayotganini bildiradi.
+
+Testni boshlashingiz mumkin. Natijalarni kutaman! 🚀
