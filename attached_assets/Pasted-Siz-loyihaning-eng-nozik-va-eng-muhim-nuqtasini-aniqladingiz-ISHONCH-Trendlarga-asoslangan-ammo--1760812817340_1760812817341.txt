@@ -1,0 +1,45 @@
+Siz loyihaning eng nozik va eng muhim nuqtasini aniqladingiz – ISHONCH. Trendlarga asoslangan, ammo aniq dalillarsiz yozilgan maqola, hatto chiroyli bo'lsa ham, o'quvchining ishonchini yo'qotadi. Yangiliklar sayti uchun ishonch – bu eng asosiy kapitaldir.
+
+Sizning trendlardan voz kechib, faqat ishonchli manbalarga (RSS) tayanish taklifingiz – bu loyihani shunchaki "qiziqarli AI loyiha"dan haqiqiy, jiddiy va ishonchli media-portalga aylantiradigan eng to'g'ri qadamdir.
+
+Men bu yangi strategiyani to'liq qo'llab-quvvatlayman. Keling, uni rasmiylashtiramiz va amalga oshiramiz.
+
+YANGI STRATEGIYA: "MANBAGA ASOSLANGAN KONTENT MODELI"
+Bu yondashuv barcha muammolarni bir vaqtning o'zida hal qiladi:
+
+Maksimal Ishonchlilik: Har bir maqola endi aniq, tekshirilishi mumkin bo'lgan manbaga (sourceUrl) ega bo'ladi. Bu AI ning "bilimlarining eskirishi" muammosini to'liq bartaraf etadi.
+
+Doimiy Dolzarblik: Tizim har doim eng so'nggi yangiliklar matni bilan ishlaydi, bu esa ma'lumotlarning doimo yangi bo'lishini kafolatlaydi.
+
+Kontent Unikalligi: Siz aytgandek, bir xil kontent chiqishini oldini olish uchun kuchli mexanizm qo'shamiz.
+
+TEXNIK AMALGA OSHIRISH PLANI
+Ushbu yangi, yanada professional strategiyaga o'tish uchun quyidagi aniq qadamlarni amalga oshiramiz:
+
+1-Qadam: Trendga Asoslangan Generatsiyani O'chirish (Backend)
+
+Maqsad: Ishonchsiz kontent manbasini tizimdan butunlay olib tashlash.
+
+Amal: Men article-generator.ts va boshqa tegishli fayllardan Google Trends'dan ma'lumot oladigan va AI_TREND turidagi maqolalarni yaratadigan barcha kod qismlarini o'chiraman yoki izohga olaman (comment out). Bu bilan biz endi faqat RSS manbalariga tayanib ishlaymiz.
+
+2-Qadam: RSS Manbalari Ro'yxatini Kengaytirish va Markazlashtirish (Konfiguratsiya)
+
+Maqsad: RSS manbalarini ko'paytirish va ularni boshqarishni osonlashtirish.
+
+Amal: Barcha RSS manzillarini kod ichidan olib, alohida konfiguratsiya fayliga (config/rss-feeds.json) joylashtiramiz. Bu faylga biz mahalliy (Kun.uz, Daryo.uz, Gazeta.uz) va xorijiy (BBC Sport, ESPN, TechCrunch, Reuters va boshqalar) saytlarning ro'yxatini sezilarli darajada kengaytirib kiritamiz.
+
+3-Qadam: Takrorlanishni Oldini Olish Mexanizmini Joriy Qilish (Eng Muhim Qadam!)
+
+Maqsad: Bir xil yangilikning qayta-qayta, boshqa so'zlar bilan saytga joylanishini oldini olish.
+
+Amal: rss-service.ts servisiga yangi mantiq qo'shaman. RSS-lentadan yangi maqola olinganda, uning original manzili (sourceUrl) olinadi. Maqolani Gemini'ga yuborishdan oldin, tizim ma'lumotlar bazasidagi articles jadvalini tekshiradi: "Bunday sourceUrl bilan maqola avval yaratilganmi?". Agar javob "ha" bo'lsa, bu maqola o'tkazib yuboriladi va jarayon keyingi yangilikka o'tadi. Bu 100% unikallikni ta'minlaydi.
+
+4-Qadam: Gemini Prompt'larini Kuchaytirish
+
+Maqsad: Qayta yozilgan matnlarning bir-biriga o'xshab qolish ehtimolini yanada kamaytirish.
+
+Amal: Gemini uchun qayta yozish (rewrite) buyrug'ini (prompt) takomillashtiramiz. Unga qo'shimcha ko'rsatmalar qo'shamiz, masalan: "Matn strukturasini o'zgartir", "Sarlavhaga kreativ yondash", "Maqolani boshqacha xulosa bilan yakunla".
+
+Bu reja sizning loyihangizni nafaqat ishonchli, balki kontent jihatdan ham ancha boy va rang-barang qiladi.
+
+Ushbu yangi, yanada ishonchli strategiyaga o'tishga rozimisiz? Ishni Google Trends funksionalini o'chirish va takrorlanishni oldini olish mexanizmini qo'shishdan boshlaymizmi?
