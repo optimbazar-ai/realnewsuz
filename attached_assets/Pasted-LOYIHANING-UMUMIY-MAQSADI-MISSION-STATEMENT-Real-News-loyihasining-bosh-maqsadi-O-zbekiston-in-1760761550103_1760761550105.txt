@@ -1,0 +1,130 @@
+LOYIHANING UMUMIY MAQSADI (MISSION STATEMENT)
+"Real News" loyihasining bosh maqsadi – O‘zbekiston internet foydalanuvchilarini eng so‘nggi, dolzarb va qiziqarli yangiliklar bilan sun'iy intellekt yordamida, to‘liq avtomatlashtirilgan tarzda ta'minlaydigan innovatsion media platforma yaratish.
+
+Asosiy vazifalar:
+
+Avtomatlashtirish: Inson aralashuvini minimallashtirib, trendlarni aniqlash, kontent yaratish va nashr etish jarayonlarini to'liq avtomatlashtirish.
+
+Tezkorlik: Google Trends kabi manbalar orqali eng "qaynoq" mavzularni darhol aniqlab, ular haqida birinchilardan bo'lib kontent yetkazish.
+
+Sifat: Gemini AI texnologiyasidan foydalanib, o‘qish uchun qulay, mazmunli va grammatik to‘g‘ri maqolalar generatsiya qilish.
+
+Ishonchlilik: Tizimning uzluksiz (24/7) ishlashini va belgilangan vaqtda (7:00 dan 21:00 gacha) yangiliklar yetkazib berilishini kafolatlash.
+
+📋 1-QADAM UCHUN AMALIY TOPSHIRIQLAR
+Vazifa: Loyihaning Backend qismi uchun mustahkam poydevor qurish. Quyidagi amallarni ketma-ket bajaring:
+
+1. Loyiha papkasini yaratish va Node.js loyihasini ochish:
+
+Terminalda (buyruqlar satrida) quyidagi buyruqlarni kiriting:
+
+Bash
+
+# Backend uchun yangi papka yaratamiz
+mkdir real-news-backend
+
+# Shu papkaga o'tamiz
+cd real-news-backend
+
+# Standart sozlamalar bilan package.json faylini yaratamiz
+npm init -y
+2. Asosiy kutubxonalarni o'rnatish:
+
+Bizga server yaratish (express), muhit o'zgaruvchilari bilan ishlash (dotenv) va avtomatik qayta ishga tushirish (nodemon) uchun kutubxonalar kerak bo'ladi.
+
+Bash
+
+# Asosiy kutubxonalarni o'rnatamiz
+npm install express dotenv
+
+# Faqat development uchun kerak bo'ladigan kutubxonani o'rnatamiz
+npm install --save-dev nodemon
+3. Loyiha strukturasini (papkalarni) yaratish:
+
+Toza va tartibli kod uchun quyidagi papka strukturasini yaratamiz.
+
+Bash
+
+# Barcha kodlarimiz turadigan asosiy 'src' papkasini yaratamiz
+mkdir src
+
+# 'src' ichida kerakli papkalarni yaratamiz
+cd src
+mkdir controllers routes services models utils config
+cd ..
+4. Dastlabki server kodini yozish:
+
+src papkasi ichida index.js (yoki app.js) faylini yarating va unga quyidagi kodni joylashtiring:
+
+JavaScript
+
+// src/index.js
+
+const express = require('express');
+const dotenv = require('dotenv');
+
+// .env faylidagi o'zgaruvchilarni yuklash
+dotenv.config();
+
+const app = express();
+const PORT = process.env.PORT || 3001;
+
+app.get('/', (req, res) => {
+  res.send('"Real News" Backend serveri muvaffaqiyatli ishga tushdi!');
+});
+
+app.listen(PORT, () => {
+  console.log(`Server ${PORT}-portda ishlamoqda...`);
+});
+5. .env va .gitignore fayllarini sozlash:
+
+Loyiha papkasida (real-news-backend ichida) .env va .gitignore nomli ikkita fayl yarating.
+
+.env fayliga quyidagilarni yozing (hozircha qiymatlar bo'sh turadi):
+
+Фрагмент кода
+
+# .env
+
+PORT=3001
+DATABASE_URL=
+GEMINI_API_KEY=
+UNSPLASH_ACCESS_KEY=
+JWT_SECRET_KEY=
+.gitignore fayliga esa loyihaning keraksiz qismlarini gitga qo'shmaslik uchun quyidagilarni yozing:
+
+Фрагмент кода
+
+# .gitignore
+
+node_modules
+.env
+6. package.json fayliga skriptlarni qo'shish:
+
+package.json faylini ochib, "scripts" qismiga quyidagi qatorlarni qo'shing. Bu serverni oson ishga tushirish uchun kerak.
+
+JSON
+
+// package.json faylining bir qismi
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js"
+  },
+7. Loyihani Gitga qo'shish va serverni test qilish:
+
+Bash
+
+# Git repozitoriysini yaratish
+git init
+
+# Barcha fayllarni qo'shish
+git add .
+
+# Birinchi commit (o'zgarishlarni saqlash)
+git commit -m "Initial project structure and backend setup"
+
+# Serverni development rejimida ishga tushirish
+npm run dev
+Agar terminalda "Server 3001-portda ishlamoqda..." yozuvini ko'rsangiz, demak, 1-qadam muvaffaqiyatli bajarildi!
+
+Ushbu qadamni yakunlaganingizdan so'ng, 2-qadamga — ma'lumotlar bazasi modellarini yaratishga o'tishimiz mumkin.
