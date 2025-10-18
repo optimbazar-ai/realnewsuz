@@ -3,6 +3,7 @@ import { Link } from "wouter";
 import { Article, Trend } from "@shared/schema";
 import { Clock, Flame, TrendingUp, Calendar } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { format } from "date-fns";
 import { Helmet } from "react-helmet-async";
@@ -89,24 +90,26 @@ export default function Home() {
             <h3 className="font-semibold text-sm">Turkumlar bo'yicha</h3>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Badge 
+            <Button
               variant={selectedCategory === null ? "default" : "outline"}
-              className="cursor-pointer hover-elevate transition-all"
+              size="sm"
               onClick={() => setSelectedCategory(null)}
               data-testid="button-category-all"
+              className="h-8 rounded-full"
             >
               Barchasi
-            </Badge>
+            </Button>
             {categories.map((cat) => (
-              <Badge 
-                key={cat} 
+              <Button
+                key={cat}
                 variant={selectedCategory === cat ? "default" : "outline"}
-                className="cursor-pointer hover-elevate transition-all"
+                size="sm"
                 onClick={() => setSelectedCategory(cat)}
                 data-testid={`button-category-${cat.toLowerCase()}`}
+                className="h-8 rounded-full"
               >
                 {cat}
-              </Badge>
+              </Button>
             ))}
           </div>
         </div>
