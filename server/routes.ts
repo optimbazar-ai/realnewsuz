@@ -275,6 +275,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const results = await generateArticlesFromAllSources();
       const createdArticles = [];
       
+      if (results.aiTrend) {
+        const article = await storage.createArticle(results.aiTrend);
+        createdArticles.push(article);
+        await storage.createLog({
+          action: "article_generated_ai_trend",
+          status: "success",
+          message: `AI trend'dan maqola yaratildi: ${article.title}`,
+        });
+      }
+      
       if (results.localRSS) {
         const article = await storage.createArticle(results.localRSS);
         createdArticles.push(article);

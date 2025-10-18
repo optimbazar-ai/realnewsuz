@@ -165,6 +165,20 @@ export async function generateArticlesFromAllSources(): Promise<{
   let foreignRSS: InsertArticle | null = null;
   
   try {
+    const trends = await storage.getAllTrends();
+    const unprocessedTrend = trends.find(t => !t.isProcessed);
+    
+    if (unprocessedTrend) {
+      aiTrend = await generateArticleFromAITrend(unprocessedTrend.keyword, usedPhotoIds);
+      await storage.markTrendAsProcessed(unprocessedTrend.id);
+    } else {
+      console.log("No unprocessed trends available for AI article generation");
+    }
+  } catch (error) {
+    console.error("Error generating AI trend article:", error);
+  }
+  
+  try {
     localRSS = await generateArticleFromLocalRSS(RSS_FEEDS.LOCAL.KUN_UZ, usedPhotoIds);
   } catch (error) {
     console.error("Error generating local RSS article:", error);
