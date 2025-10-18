@@ -1,0 +1,54 @@
+YANGI STRATEGIYA: "MAHSULOTGA AYLANTIRISH" REJASI (3 ta asosiy yo'nalish)
+Hozirgi vazifamiz – mavjud texnologiyani to'liq funksional, mustaqil ishlay oladigan mahsulotga aylantirish. Buning uchun 3 ta yo'nalishda bir vaqtning o'zida harakat qilishimiz kerak.
+
+1-YO'NALISH: KONTENT OQIMINI KUCHAYTIRISH
+Muammo: Google Trends'ning o'zi O'zbekiston uchun kuniga 10-15 ta unikal yangilik manbasini berishga qiynalmoqda.
+
+Yechim (Sizning taklifingiz – a'lo darajada!): Kontent manbalarini diversifikatsiya qilish, ya'ni RSS-lentalardan foydalanish. Biz yangilikni ko'chirmaymiz, balki undan mavzu (trend) sifatida foydalanamiz.
+
+1.1. Yangi Servis Yaratish (rss-service.ts): O'zbekistonning yetakchi yangiliklar saytlarining (masalan, Kun.uz, Daryo.uz, Gazeta.uz) RSS-lentala'rini o'qiydigan yangi servis yaratiladi.
+
+1.2. Mavzuni Ajratib Olish: RSS orqali kelgan har bir yangilik sarlavhasi Gemini API'ga yuborilib, undan asosiy kalit so'z yoki mavzu ajratib olinadi (masalan, "O‘zbekistonda elektromobillar uchun quvvatlash stansiyalari soni oshdi" → "elektromobillar bozori").
+
+1.3. Trendlar Bazaga Qo'shish: Ajratib olingan bu yangi mavzular trends jadvaliga source: 'rss' belgisi bilan qo'shiladi.
+
+Natija: Bizning kontent generatorimiz uchun manbalar soni keskin oshadi va kuniga 10-15 ta post yaratish muammosi hal bo'ladi.
+
+2-YO'NALISH: ADMIN PANELINI "MAHSULOT"GA AYLANTIRISH
+Muammo: Admin paneli hozir ochiq va unda biz avvalgi qadamda yaratgan draft maqolalarni boshqarish imkoniyati yo'q.
+
+Yechim: Uni xavfsiz va to'liq funksional boshqaruv vositasiga aylantirish.
+
+2.1. Autentifikatsiya Qo'shish: Admin paneliga kirish uchun oddiy, ammo ishonchli login/parol tizimi joriy qilinadi (masalan, JWT yoki session-based). Kirish faqat siz uchun ochiq bo'ladi.
+
+2.2. "Drafts" Bo'limi Yaratish: Admin panelida status: "draft" bo'lgan barcha maqolalar ko'rinadigan alohida sahifa yaratiladi.
+
+2.3. "Chop Etish" Funksionali: Har bir draft maqola uchun "Tahrirlash va Chop etish" tugmasi qo'shiladi. Bu tugma orqali:
+
+Maqolaga qo'lda rasm URL'ini kiritish yoki Unsplash'dan qayta qidirish.
+
+Maqola statusini "published" ga o'zgartirish va publishedAt vaqtini belgilash.
+
+Natija: Bizning "aqlli fallback" tizimimiz to'liq ishga tushadi. Rasmsiz qolgan maqolalar endi yo'qolib qolmaydi, balki boshqaruvga tayyor holda sizni kutadi.
+
+3-YO'NALISH: LOYIHANI OMMA UCHUN TAYYORLASH
+Muammo: Hozirgi holatda loyiha qidiruv tizimlari (Google, Yandex) uchun optimallashtirilmagan.
+
+Yechim: SEO'ning fundamental elementlarini joriy qilish.
+
+3.1. Dinamik Meta-Teglar: Har bir maqola sahifasi ochilganda uning sarlavhasi (<title>) va qisqacha tavsifi (<meta name="description">) avtomatik ravishda generatsiya qilinadi. Bu SEO uchun eng muhim qadam.
+
+3.2. sitemap.xml Generatsiyasi: Barcha published maqolalar ro'yxatini o'z ichiga olgan sayt xaritasini (sitemap.xml) avtomatik yaratadigan skript yoziladi. Bu Google'ga saytimizdagi barcha sahifalarni oson topishga yordam beradi.
+
+3.3. robots.txt Fayli: Qidiruv tizimlariga qaysi sahifalarni indekslash (masalan, maqolalar) va qaysilarini indekslamaslik (masalan, admin panel) kerakligini ko'rsatuvchi robots.txt fayli yaratiladi.
+
+Natija: Loyihamiz shunchaki veb-sayt emas, balki qidiruv tizimlari tomonidan tan olinadigan va yuqori o'rinlarga da'vogarlik qila oladigan haqiqiy media-portalga aylanadi.
+
+STRATEGIK TANLOV: QAYSI QADAMDAN BOSHLAYMIZ?
+Uchala yo'nalish ham muhim, lekin ularni bir vaqtda boshlash qiyin.
+
+Mening tavsiyam: 2-Yo'nalish: ADMIN PANELINI "MAHSULOT"GA AYLANTIRISH dan boshlaymiz.
+
+Nima uchun? Chunki biz avvalgi qadamda "draft" maqolalar tizimini yaratdik, lekin hozir ularni boshqarish imkoniyatimiz yo'q. Bu mantiqiy zanjirni yakunlash uchun eng to'g'ri qadamdir. Admin panelini to'liq funksional holga keltirib olsak, keyin kontent oqimini kuchaytirish (1-yo'nalish) va uni ommaga taqdim etish (3-yo'nalish) yanada osonlashadi.
+
+Shu rejaga rozimisiz? Admin paneli uchun autentifikatsiya va "draft"larni boshqarish tizimini qurishni boshlaymizmi?
