@@ -1,0 +1,15 @@
+Fantastik! Bu a'lo darajadagi ish! Siz nafaqat retry mexanizmini qo'shdingiz, balki uni zudlik bilan, xuddi shu test ssenariysi yordamida sinovdan o'tkazib, uning to'liq ishlashini tasdiqladingiz. Bu – muhandislikning eng yuqori namunasi: "Qur, Mustahkamla, Tasdiqla".Sizning loglar va xulosalaringizdan ko'rinib turibdiki, loyihaning "immunitet tizimi" sezilarli darajada kuchaydi. Endi u vaqtinchalik API xatoliklaridan "qo'rqmaydi" va taslim bo'lmaydi. Bu loyihaning ishonchliligi va barqarorligi uchun ulkan qadam.YAKUNIY XULOSA: SSENARIY #1A YAKUNLANDIBiz Ssenariy #1A (Gemini API xatoligi) ni to'liq yakunladik va undan kelib chiqqan zaiflikni muvaffaqiyatli bartaraf etdik.VazifaHolatIzohXatolikni aniqlash✅MuvaffaqiyatliLog yozish✅MuvaffaqiyatliRetry mexanizmini qo'shish✅MuvaffaqiyatliRetry mexanizmini testlash✅MuvaffaqiyatliEndi bizning avtomatlashtirish tizimimizning birinchi himoya chizig'i mustahkam. Keling, keyingi zaif nuqtani tekshirishga o'tamiz.KEYINGI BOSQICH: Ssenariy #1B - Unsplash API XatoligiMaqsad: Maqola matni muvaffaqiyatli yaratilgandan so'ng, rasm topish jarayonida xatolik yuz berganda tizim o'zini qanday tutishini tekshirish.Kutilayotgan Natija (Ideal Holat):Tizim "qotib" qolmasligi kerak.Yaratilgan maqola (title, content) ma'lumotlar bazasiga saqlanishi kerak.Saqlangan maqolaning status maydoni "draft" bo'lishi kerak (chunki u to'liq emas).Rasmga tegishli maydonlar (imageUrl, photographerName va hokazo) null yoki bo'sh bo'lishi kerak.system_logs jadvaliga aniq xabar yozilishi kerak, masalan: action: "image_fetch_failed", status: "error", message: "Maqola yaratildi, lekin Unsplash'dan rasm topishda xatolik".AMALIY YO'RIQNOMA: Unsplash API Xatoligini Simulyatsiya QilishEndi xuddi avvalgi usulni unsplash.ts faylida qo'llaymiz.1-Qadam: unsplash.ts faylini o'zgartirishserver/unsplash.ts faylini oching va rasm qidiradigan funksiyaning boshiga quyidagi test kodini qo'shing:TypeScript// server/unsplash.ts
+
+export async function findUnsplashImage(keyword: string) {
+  
+  // =================== VAQTINCHALIK TEST KODI ===================
+  // Maqsad: Unsplash API'dan xatolikni ataylab simulyatsiya qilish
+  console.log("⚠️ TEST MODE: Simulating Unsplash API Error...");
+  throw new Error("Simulated Unsplash API Error: No image found or API down");
+  // =============================================================
+
+  // ASL KOD (vaqtinchalik ishlamay turadi)
+  /* ... bu yerda Unsplash API'ga so'rov yuboradigan asl kodingiz turgan edi ...
+  */
+}
+2-Qadam: Testni BoshlashAvvalgi testdagi o'zgarishlar (Gemini uchun test kodi) olib tashlanganiga va gemini.ts toza ekanligiga ishonch hosil qiling.Serverni qayta ishga tushiring.Avvalgidek, bitta trendni is_processed = false qilib, testni ishga tushiring.Bu safar biz Gemini muvaffaqiyatli ishlashini, lekin jarayon Unsplash'ga yetib kelganda to'xtashini kutamiz.Ushbu rejaga muvofiq, Ssenariy #1B testini boshlashga tayyormisiz?
