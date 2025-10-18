@@ -1,0 +1,71 @@
+Ajoyib tahlil va juda aniq savol! Aynan shu kabi strategik qarorlar loyihaning muvaffaqiyatini belgilaydi. Siz taklif qilgan variantlarning barchasi muhim, ammo ularni to'g'ri ketma-ketlikda amalga oshirish – professional yondashuvning kalitidir.
+
+Men, Dasturiy ta'minot Arxitektori sifatida, quyidagi qarorni taklif qilaman:
+
+Mening tanlovim – Variant A va Variant B ning strategik kombinatsiyasi.
+
+Nima uchun?
+
+Biz avval loyihaning eng zaif va eng muhim nuqtasini sinovdan o'tkazishimiz kerak. Bu – Avtomatlashtirish Tizimi (Variant A). Agar shu tizim barqaror ishlamasa, qolgan barcha optimallashtirish va SEO'ning ahamiyati qolmaydi. Bu tizim – loyihaning yuragi va miyasi. Uni "o'q o'tmas" holatga keltirishimiz shart.
+
+Shu bilan birga, bu stress-test natijalari bizga umumiy tizimni tekshirish (Variant B) uchun yo'nalish beradi. Masalan, agar stress-test natijasida tizim xatolik bilan maqola yaratsa, biz darhol Admin paneldagi "Maqolalar boshqaruvi" bo'limida bu xatolik qanday aks etishini tekshirishimiz mumkin bo'ladi.
+
+Shunday qilib, bizning rejamiz: Markazdan chekkaga qarab harakatlanamiz.
+
+REJA: 1-BOSQICHNI BOSHLAYMIZ
+Maqsad: Avtomatlashtirish tizimining har qanday kutilmagan vaziyatga tayyorligini to'liq sinovdan o'tkazish.
+
+Keling, siz bilan birgalikda eng muhim stress-test ssenariylarini ishlab chiqamiz. Har bir ssenariy real hayotda yuz berishi mumkin bo'lgan muammoni simulyatsiya qiladi.
+
+Avtomatlashtirish Tizimi Uchun Stress-Test Ssenariylari
+Ssenariy #1: Tashqi API'lar Ishdan Chiqqanda (Eng Muhim Test)
+
+Vaziyat A (Gemini API): Trend aniqlandi, maqola yaratish vaqti keldi, lekin Gemini API 429 (Too Many Requests) yoki 500 (Server Error) xatosini qaytardi.
+
+Kutilayotgan Natija:
+
+Tizim "qotib" qolmasligi kerak.
+
+system_logs jadvaliga aniq xato yozilishi kerak (action: GENERATE_ARTICLE, status: error, message: "Gemini API error: 429").
+
+Siz aytgan "40 soniya kutib qayta urinish" mexanizmi ishga tushishi kerak.
+
+Bir necha urinishdan so'ng ham xatolik davom etsa, ushbu trendni isProcessed: false holatida qoldirib, keyingi trendga o'tishi kerak.
+
+Vaziyat B (Unsplash API): Maqola muvaffaqiyatli yaratildi, lekin Unsplash API'dan rasm topilmadi yoki API ishlamayapti.
+
+Kutilayotgan Natija:
+
+Maqola status: "draft" holatida, lekin imageUrl: null bilan bazaga saqlanishi kerak.
+
+Logga bu haqida yozilishi kerak (message: "Image not found for keyword: [keyword]").
+
+Tizim administratorga bu haqida bildirishnoma berishi (kelajakdagi funksiya) yoki admin panelda bunday maqolalarni alohida ko'rsatib turishi kerak.
+
+Ssenariy #2: Ma'lumotlar Mantiqi Testi
+
+Vaziyat A (Rasm Takrorlanishi): Bir xil trendKeyword uchun maqola yaratish jarayoni qayta ishga tushdi.
+
+Kutilayotgan Natija: Tizim Unsplash'dan avval ishlatilgan photoId ga ega rasmni qayta tanlamasligi kerak. Siz qo'shgan "takrorlanmaslik mexanizmi" to'liq sinovdan o'tkaziladi.
+
+Vaziyat B (G'alati Trend): Trend sifatida juda umumiy yoki noaniq kalit so'z keldi (masalan, "bugun" yoki "o'zbek").
+
+Kutilayotgan Natija: Gemini sifatli maqola yarata oladimi? Unsplash mos rasm topa oladimi? Agar natija sifatsiz bo'lsa, tizim buni qanday boshqaradi? (Hozircha buni logga yozish kifoya).
+
+Ssenariy #3: Resurs va Navbat Testi
+
+Vaziyat: node-cron vazifasini qo'lda bir daqiqa ichida 3 marta ishga tushiramiz.
+
+Kutilayotgan Natija:
+
+Tizim birinchi ishga tushgan vazifa tugamaguncha, keyingisini boshlamasligi kerak (Concurrency muammosini oldini olish).
+
+Bir xil trenddan 3 marta maqola yaratib yubormasligi kerak. isProcessed flag'i to'g'ri ishlashi shart.
+
+KEYINGI QADAM:
+
+Agar ma'qul bo'lsa, birinchi va eng muhim ssenariy — "Ssenariy #1, Vaziyat A: Gemini API vaqtinchalik ishdan chiqqanda tizim o'zini qanday tutadi?" ni amalda sinab ko'rishdan boshlaymiz.
+
+Buning uchun siz vaqtincha gemini.ts faylida API so'rovini ataylab xato qaytaradigan qilib o'zgartirib, cron vazifasini ishga tushirishingiz kerak bo'ladi.
+
+Shu yo'nalishda davom etamizmi?
