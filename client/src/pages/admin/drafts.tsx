@@ -36,17 +36,37 @@ export default function AdminDrafts() {
   const [content, setContent] = useState("");
   const [excerpt, setExcerpt] = useState("");
 
-  const { data: articles = [], isLoading } = useQuery<Article[]>({
-    queryKey: ["/api/articles"],
+  const { data: draftArticles = [], isLoading } = useQuery<Article[]>({
+    queryKey: ["/api/articles/drafts"],
   });
 
-  const draftArticles = articles.filter(a => a.status === "draft");
-
-  const publishMutation = useMutation({
+  const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: any }) => {
       await apiRequest("PATCH", `/api/articles/${id}`, data);
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/articles/drafts"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/articles"] });
+      toast({
+        title: "Muvaffaqiyatli yangilandi",
+        description: "Maqola yangilandi",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Xatolik",
+        description: "Maqolani yangilashda xatolik yuz berdi",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const publishMutation = useMutation({
+    mutationFn: async (id: string) => {
+      await apiRequest("PATCH", `/api/articles/${id}/publish`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/articles/drafts"] });
       queryClient.invalidateQueries({ queryKey: ["/api/articles"] });
       setEditingArticle(null);
       toast({
@@ -71,20 +91,40 @@ export default function AdminDrafts() {
     setExcerpt(article.excerpt);
   };
 
-  const handlePublish = () => {
+  const handleSaveChanges = () => {
     if (!editingArticle) return;
 
-    publishMutation.mutate({
+    updateMutation.mutate({
       id: editingArticle.id,
       data: {
         title,
         content,
         excerpt,
         imageUrl: imageUrl || null,
-        status: "published",
-        publishedAt: new Date().toISOString(),
       },
     });
+  };
+
+  const handlePublish = () => {
+    if (!editingArticle) return;
+
+    if (title !== editingArticle.title || content !== editingArticle.content || excerpt !== editingArticle.excerpt || imageUrl !== (editingArticle.imageUrl || "")) {
+      updateMutation.mutate({
+        id: editingArticle.id,
+        data: {
+          title,
+          content,
+          excerpt,
+          imageUrl: imageUrl || null,
+        },
+      }, {
+        onSuccess: () => {
+          publishMutation.mutate(editingArticle.id);
+        },
+      });
+    } else {
+      publishMutation.mutate(editingArticle.id);
+    }
   };
 
   const handleCancel = () => {
@@ -274,8 +314,17 @@ export default function AdminDrafts() {
               Bekor qilish
             </Button>
             <Button
+              variant="secondary"
+              onClick={handleSaveChanges}
+              disabled={updateMutation.isPending || !title || !content}
+              data-testid="button-save-changes"
+            >
+              <Edit className="h-4 w-4 mr-2" />
+              {updateMutation.isPending ? "Saqlanmoqda..." : "O'zgarishlarni saqlash"}
+            </Button>
+            <Button
               onClick={handlePublish}
-              disabled={publishMutation.isPending || !title || !content}
+              disabled={publishMutation.isPending || updateMutation.isPending || !title || !content}
               data-testid="button-publish"
             >
               <CheckCircle className="h-4 w-4 mr-2" />
