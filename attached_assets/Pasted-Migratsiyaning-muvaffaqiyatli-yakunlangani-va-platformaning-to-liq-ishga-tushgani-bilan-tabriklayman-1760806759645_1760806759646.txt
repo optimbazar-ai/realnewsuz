@@ -1,0 +1,44 @@
+Migratsiyaning muvaffaqiyatli yakunlangani va platformaning to'liq ishga tushgani bilan tabriklayman! Bu sizning mehnatingiz va professional yondashuvingiz natijasidir.
+
+Sizning qaroringiz mutlaqo to'g'ri. Bizda endi poydevori mustahkam, ishonchli ishlaydigan tizim bor. Endi bor e'tiborni foydalanuvchi ko'radigan qismga – loyihaning "yuzi"ga qaratish vaqti keldi.
+
+Ha, albatta, boshlaymiz! Bu eng to'g'ri va vaqtida qilingan qaror.
+
+Keling, professional dizayn skeletini yaratish bo'yicha siz taklif qilgan rejaning birinchi va eng muhim qadamini amalga oshiramiz.
+
+REJA: BOSH SAHIFANI ("HOME.TSX") PROFESSIONAL MEDIA-PORTALGA AYLANTIRISH
+Maqsad: Foydalanuvchi saytga kirganda uni shunchaki yangiliklar ro'yxati emas, balki puxta o'ylangan, ma'lumotlarni muhimligiga qarab taqdim etadigan haqiqiy tahririyat kutib olishini ta'minlash.
+
+Men sizning ishingizni quyidagi bosqichlarga bo'lishni taklif qilaman:
+
+1-Qadam: Ma'lumotlarni Tayyorlash (home.tsx ichidagi mantiq):
+
+API'dan barcha nashr etilgan (published) maqolalarni olasiz.
+
+Olingan massivdan eng so'nggi maqolani Asosiy Maqola (mainArticle) sifatida ajratib olasiz (masalan, articles[0]).
+
+Undan keyingi 2-3 ta maqolani Ikkinchi Darajali Maqolalar (secondaryArticles) sifatida ajratib olasiz (masalan, articles.slice(1, 3)).
+
+Qolgan barcha maqolalarni So'nggi Yangiliklar (recentArticles) sifatida qoldirasiz.
+
+2-Qadam: "Hero" Blokini Yaratish (JSX Struktura):
+
+Sahifaning eng yuqorisida katta section yaratasiz.
+
+Bu section ichida Tailwind CSS Grid yordamida 2 ustunli layout qurasiz (masalan, grid grid-cols-3 gap-4).
+
+Chap ustun (2/3 qism): Bu yerga mainArticle joylashtiriladi – katta rasm, yirik sarlavha (text-4xl font-bold) va qisqacha tavsif bilan.
+
+O'ng ustun (1/3 qism): Bu yerga esa secondaryArticles ro'yxati joylashtiriladi – har biri kichikroq rasm va sarlavha bilan, vertikal ravishda.
+
+3-Qadam: "So'nggi Yangiliklar" Lentasini Yaratish:
+
+"Hero" blokidan so'ng "So'nggi Yangiliklar" sarlavhasi bilan yangi section ochasiz.
+
+Bu yerda recentArticles massividagi maqolalarni yana Grid yordamida (masalan, grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6) chiroyli kartochkalar (ArticleCard) ko'rinishida chiqarasiz.
+
+Bu o'zgarishlar saytingizga kirgan har qanday foydalanuvchida darhol professional va ishonchli manba degan taassurot qoldiradi.
+
+Marhamat, ishni client/src/pages/home.tsx faylini ochib, yuqoridagi reja asosida qayta qurishdan boshlashingiz mumkin. Men jarayonni kuzatib boraman va kerak bo'lganda yordam beraman.
+
+Natijalarni kutaman! 🚀
