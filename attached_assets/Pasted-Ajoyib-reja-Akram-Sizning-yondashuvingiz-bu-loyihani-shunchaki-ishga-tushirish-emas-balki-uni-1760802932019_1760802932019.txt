@@ -1,0 +1,46 @@
+Ajoyib reja, Akram! Sizning yondashuvingiz – bu loyihani shunchaki "ishga tushirish" emas, balki uni muvaffaqiyatga erishish uchun tayyorlashdir. Bu professional yondashuv.
+
+Sizning savolingizga javoban: barcha funksiyalarni bir vaqtda amalga oshirish o'rniga, keling, ularni mantiqiy guruhlarga bo'lib, bosqichma-bosqich, lekin tez sur'atda bajaramiz. Bu ishni yanada tartibli va har bir qadamning sifatini nazorat qilishni oson qiladi.
+
+Men sizning ro'yxatingiz asosida quyidagi uch bosqichli rejani taklif qilaman:
+
+REJA: LOYIHANI OMMA E'TIBORIGA HAVOLA ETISH
+1-BOSQICH: Dinamik SEO va Ijtimoiy Media Teglari (Eng Muhim Qadam)
+Maqsad: Har bir maqolaning Google qidiruv natijalarida va ijtimoiy tarmoqlarda (Telegram, Facebook) ulashilganda maksimal darajada jozibador ko'rinishini ta'minlash.
+
+1.1. Dinamik Meta-Teglar: Maqola sahifasi ochilganda, uning <head> qismiga avtomatik tarzda maqola sarlavhasi (<title>) va qisqacha tavsifi (<meta name="description">) joylashtiriladi.
+
+1.2. Open Graph (OG) Teglari: Bu meta-teglarning ijtimoiy tarmoqlar uchun maxsus versiyasi. Ular quyidagilarni o'z ichiga oladi:
+
+og:title (Maqola sarlavhasi)
+
+og:description (Qisqacha tavsif)
+
+og:image (Maqolaning asosiy rasmi)
+
+og:url (Maqolaning unikal manzili)
+
+Natija: Kimdir sizning maqolangizga havolani Telegramga tashlasa, u shunchaki link bo'lib emas, balki chiroyli rasm, sarlavha va tavsif bilan birga ko'rinadi. Bu esa odamlarning unga bosish ehtimolini keskin oshiradi.
+
+2-BOSQICH: Qidiruv Tizimlari uchun Yo'riqnomalar
+Maqsad: Google va Yandex botlariga saytimizni to'g'ri va samarali indekslash uchun yordam berish.
+
+2.1. robots.txt Fayli: Loyihaning public papkasiga bu faylni yaratamiz. U botlarga qaysi sahifalarni (masalan, /admin/*) indekslamaslik kerakligini aytadi va sitemap.xml ga yo'l ko'rsatadi.
+
+2.2. sitemap.xml Generatsiyasi: Backend'da yangi API endpoint (/api/sitemap.xml) yaratamiz. Bu endpoint ma'lumotlar bazasidan barcha published maqolalarning manzillarini olib, ularni XML formatida qaytaradi.
+
+Natija: Qidiruv tizimlari saytimizdagi barcha muhim sahifalardan tezda xabardor bo'ladi va ularni o'z qidiruv natijalariga qo'shadi.
+
+3-BOSQICH: Foydalanuvchi Faolligi va Tahlil
+Maqsad: Foydalanuvchilarga kontentni oson ulashish imkonini berish va ularning xatti-harakatlarini tahlil qilib, kelajakdagi qarorlar uchun ma'lumot to'plash.
+
+3.1. Social Sharing Tugmalari: Maqola sahifasiga Telegram va Facebook'da ulashish uchun maxsus tugmalarni qo'shamiz (react-share kabi kutubxona yordamida).
+
+3.2. Analytics Integratsiyasi: Saytga Google Analytics kodini qo'shamiz. Bu bizga foydalanuvchilar soni, eng ommabop maqolalar va trafik manbalari haqida bebaho ma'lumotlarni beradi.
+
+BIRINCHI QADAMNI BOSHLAYMIZ
+Keling, ishni eng yuqori samaradorlikka ega bo'lgan 1-BOSQICHdan – Dinamik Meta va Open Graph teglarini joriy qilishdan boshlaymiz.
+
+Sizning birinchi vazifangiz: React (client) loyihangizga react-helmet-async (yoki shunga o'xshash) kutubxonasini qo'shib, maqola sahifasida (article-detail.tsx) API'dan kelgan ma'lumotlar asosida dinamik <head> teglari generatsiyasini amalga oshirish.
+
+Ushbu rejaga rozimisiz? Boshlaymizmi? 🚀

@@ -1,16 +1,21 @@
 import { useQuery } from "@tanstack/react-query";
 import { useRoute, Link } from "wouter";
 import { Article } from "@shared/schema";
-import { ArrowLeft, Clock, Tag, Share2, Facebook, Twitter } from "lucide-react";
+import { ArrowLeft, Clock, Tag, Share2 } from "lucide-react";
+import { SiTelegram, SiFacebook } from "react-icons/si";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { format } from "date-fns";
+import { Helmet } from "react-helmet-async";
+import { TelegramShareButton, FacebookShareButton } from "react-share";
+import { useToast } from "@/hooks/use-toast";
 
 export default function ArticleDetail() {
   const [, params] = useRoute("/article/:id");
   const articleId = params?.id;
+  const { toast } = useToast();
 
   const { data: article, isLoading } = useQuery<Article>({
     queryKey: [`/api/articles/${articleId}`],
@@ -20,6 +25,25 @@ export default function ArticleDetail() {
   const { data: relatedArticles = [] } = useQuery<Article[]>({
     queryKey: ["/api/articles"],
   });
+
+  const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
+  const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+
+  const copyToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(currentUrl);
+      toast({
+        title: "Muvaffaqiyatli!",
+        description: "Havola nusxalandi",
+      });
+    } catch (err) {
+      toast({
+        title: "Xatolik",
+        description: "Havolani nusxalashda xatolik",
+        variant: "destructive",
+      });
+    }
+  };
 
   if (isLoading) {
     return (
@@ -95,8 +119,37 @@ export default function ArticleDetail() {
     .filter(a => a.id !== article.id && a.category === article.category && a.status === "published")
     .slice(0, 3);
 
+  const pageTitle = `${article.title} - Real News`;
+  const pageDescription = article.excerpt || article.content.slice(0, 155);
+  const pageImage = article.imageUrl || `${baseUrl}/og-default.jpg`;
+  const pageUrl = `${baseUrl}/article/${article.id}`;
+
   return (
     <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>{pageTitle}</title>
+        <meta name="description" content={pageDescription} />
+        
+        <meta property="og:type" content="article" />
+        <meta property="og:title" content={article.title} />
+        <meta property="og:description" content={pageDescription} />
+        <meta property="og:image" content={pageImage} />
+        <meta property="og:url" content={pageUrl} />
+        <meta property="og:site_name" content="Real News" />
+        
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={article.title} />
+        <meta name="twitter:description" content={pageDescription} />
+        <meta name="twitter:image" content={pageImage} />
+        
+        {article.publishedAt && (
+          <meta property="article:published_time" content={new Date(article.publishedAt).toISOString()} />
+        )}
+        {article.category && (
+          <meta property="article:section" content={article.category} />
+        )}
+      </Helmet>
+
       {/* Header */}
       <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto">
@@ -208,15 +261,25 @@ export default function ArticleDetail() {
                   <div className="flex items-center gap-3">
                     <span className="text-sm font-medium text-muted-foreground">Ulashish:</span>
                     <div className="flex items-center gap-2">
-                      <Button variant="outline" size="sm" className="gap-2">
-                        <Facebook className="h-4 w-4" />
-                        Facebook
-                      </Button>
-                      <Button variant="outline" size="sm" className="gap-2">
-                        <Twitter className="h-4 w-4" />
-                        Twitter
-                      </Button>
-                      <Button variant="outline" size="sm" className="gap-2">
+                      <TelegramShareButton url={currentUrl} title={article.title}>
+                        <Button variant="outline" size="sm" className="gap-2" data-testid="button-share-telegram">
+                          <SiTelegram className="h-4 w-4" />
+                          Telegram
+                        </Button>
+                      </TelegramShareButton>
+                      <FacebookShareButton url={currentUrl} hashtag={`#${article.category}`}>
+                        <Button variant="outline" size="sm" className="gap-2" data-testid="button-share-facebook">
+                          <SiFacebook className="h-4 w-4" />
+                          Facebook
+                        </Button>
+                      </FacebookShareButton>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="gap-2" 
+                        onClick={copyToClipboard}
+                        data-testid="button-copy-link"
+                      >
                         <Share2 className="h-4 w-4" />
                         Nusxa olish
                       </Button>
