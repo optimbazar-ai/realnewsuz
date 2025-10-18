@@ -16,9 +16,8 @@ export default function Home() {
     queryKey: ["/api/trends"],
   });
 
-  const publishedArticles = articles.filter(a => a.status === "published");
-  const mainArticle = publishedArticles[0];
-  const latestArticles = publishedArticles.slice(1);
+  const mainArticle = articles[0];
+  const latestArticles = articles.slice(1);
   const trendingTopics = trends.filter(t => !t.isProcessed).slice(0, 8);
 
   const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
