@@ -1,0 +1,146 @@
+{
+  "local": {
+    "uzbekistan": [
+      {
+        "name": "Kun.uz",
+        "url": "https://kun.uz/feed",
+        "description": "O'zbekistonning yetakchi yangiliklar sayti",
+        "language": "uz"
+      },
+      {
+        "name": "Daryo.uz",
+        "url": "https://daryo.uz/feed/",
+        "description": "Dolzarb yangiliklar va tahlillar",
+        "language": "uz"
+      },
+      {
+        "name": "Gazeta.uz",
+        "url": "https://www.gazeta.uz/ru/rss/",
+        "description": "Rasmiy yangiliklar manbai",
+        "language": "ru"
+      },
+      {
+        "name": "Podrobno.uz",
+        "url": "https://podrobno.uz/rss/",
+        "description": "Yangiliklar va ijtimoiy masalalar",
+        "language": "ru"
+      },
+      {
+        "name": "Anhor.uz",
+        "url": "https://anhor.uz/feed",
+        "description": "Mustaqil axborot agentligi",
+        "language": "uz"
+      }
+    ]
+  },
+  "foreign": {
+    "sports": [
+      {
+        "name": "BBC Sport",
+        "url": "https://feeds.bbci.co.uk/sport/rss.xml",
+        "description": "Jahon sport yangiliklari (BBC)",
+        "language": "en",
+        "category": "Sport"
+      },
+      {
+        "name": "ESPN Football",
+        "url": "https://www.espn.com/espn/rss/soccer/news",
+        "description": "Futbol yangiliklari (ESPN)",
+        "language": "en",
+        "category": "Sport"
+      },
+      {
+        "name": "Sky Sports Football",
+        "url": "https://www.skysports.com/rss/12040",
+        "description": "Premier Liga va jahon futboli",
+        "language": "en",
+        "category": "Sport"
+      }
+    ],
+    "technology": [
+      {
+        "name": "TechCrunch",
+        "url": "https://techcrunch.com/feed/",
+        "description": "Texnologiya yangiliklari va startuplar",
+        "language": "en",
+        "category": "Texnologiya"
+      },
+      {
+        "name": "The Verge Tech",
+        "url": "https://www.theverge.com/rss/index.xml",
+        "description": "Texnologiya, fan va madaniyat",
+        "language": "en",
+        "category": "Texnologiya"
+      },
+      {
+        "name": "Wired",
+        "url": "https://www.wired.com/feed/rss",
+        "description": "Texnologiya va innovatsiya",
+        "language": "en",
+        "category": "Texnologiya"
+      },
+      {
+        "name": "Ars Technica",
+        "url": "https://feeds.arstechnica.com/arstechnica/index",
+        "description": "Texnologiya yangiliklari va tahlili",
+        "language": "en",
+        "category": "Texnologiya"
+      }
+    ],
+    "world_news": [
+      {
+        "name": "Reuters World News",
+        "url": "https://www.reutersagency.com/feed/?best-topics=tech&post_type=best",
+        "description": "Jahon yangiliklari (Reuters)",
+        "language": "en",
+        "category": "Boshqa"
+      },
+      {
+        "name": "BBC World News",
+        "url": "https://feeds.bbci.co.uk/news/world/rss.xml",
+        "description": "Jahon yangiliklari (BBC)",
+        "language": "en",
+        "category": "Boshqa"
+      },
+      {
+        "name": "Al Jazeera",
+        "url": "https://www.aljazeera.com/xml/rss/all.xml",
+        "description": "Xalqaro yangiliklar",
+        "language": "en",
+        "category": "Boshqa"
+      }
+    ],
+    "business": [
+      {
+        "name": "Bloomberg",
+        "url": "https://feeds.bloomberg.com/markets/news.rss",
+        "description": "Biznes va moliya yangiliklari",
+        "language": "en",
+        "category": "Iqtisodiyot"
+      },
+      {
+        "name": "Financial Times",
+        "url": "https://www.ft.com/?format=rss",
+        "description": "Moliyaviy yangiliklar",
+        "language": "en",
+        "category": "Iqtisodiyot"
+      }
+    ],
+    "science": [
+      {
+        "name": "Science Daily",
+        "url": "https://www.sciencedaily.com/rss/all.xml",
+        "description": "Ilmiy yangiliklar va kashfiyotlar",
+        "language": "en",
+        "category": "Boshqa"
+      },
+      {
+        "name": "NASA",
+        "url": "https://www.nasa.gov/rss/dyn/breaking_news.rss",
+        "description": "Kosmik yangiliklar",
+        "language": "en",
+        "category": "Boshqa"
+      }
+    ]
+  }
+}

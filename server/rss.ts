@@ -1,4 +1,6 @@
 import Parser from "rss-parser";
+import { readFileSync } from 'fs';
+import { join } from 'path';
 
 export interface RSSArticle {
   title: string;
@@ -97,16 +99,79 @@ function cleanContent(html: string): string {
     .trim();
 }
 
+export interface RSSFeedConfig {
+  name: string;
+  url: string;
+  description: string;
+  language: string;
+  category?: string;
+}
+
+export interface RSSFeedsConfig {
+  local: {
+    uzbekistan: RSSFeedConfig[];
+  };
+  foreign: {
+    sports: RSSFeedConfig[];
+    technology: RSSFeedConfig[];
+    world_news: RSSFeedConfig[];
+    business: RSSFeedConfig[];
+    science: RSSFeedConfig[];
+  };
+}
+
+let rssConfig: RSSFeedsConfig | null = null;
+
+export function loadRSSConfig(): RSSFeedsConfig {
+  if (rssConfig) {
+    return rssConfig;
+  }
+
+  try {
+    const configPath = join(process.cwd(), 'config', 'rss-feeds.json');
+    const configData = readFileSync(configPath, 'utf-8');
+    rssConfig = JSON.parse(configData);
+    console.log('✅ RSS feeds configuration loaded successfully');
+    return rssConfig!;
+  } catch (error) {
+    console.error('❌ Error loading RSS feeds config:', error);
+    throw new Error(`Failed to load RSS feeds configuration: ${error}`);
+  }
+}
+
+export function getAllLocalFeeds(): RSSFeedConfig[] {
+  const config = loadRSSConfig();
+  return config.local.uzbekistan;
+}
+
+export function getAllForeignFeeds(): RSSFeedConfig[] {
+  const config = loadRSSConfig();
+  return [
+    ...config.foreign.sports,
+    ...config.foreign.technology,
+    ...config.foreign.world_news,
+    ...config.foreign.business,
+    ...config.foreign.science,
+  ];
+}
+
+export function getFeedsByCategory(category: string): RSSFeedConfig[] {
+  const config = loadRSSConfig();
+  const allFeeds = getAllForeignFeeds();
+  return allFeeds.filter(feed => feed.category === category);
+}
+
+// Legacy compatibility - keep old structure for backward compatibility
 export const RSS_FEEDS = {
   LOCAL: {
-    KUN_UZ: 'https://kun.uz/feed',
-    DARYO_UZ: 'https://daryo.uz/feed/',
-    GAZETA_UZ: 'https://www.gazeta.uz/ru/rss/',
+    get KUN_UZ() { return getAllLocalFeeds()[0]?.url || 'https://kun.uz/feed'; },
+    get DARYO_UZ() { return getAllLocalFeeds()[1]?.url || 'https://daryo.uz/feed/'; },
+    get GAZETA_UZ() { return getAllLocalFeeds()[2]?.url || 'https://www.gazeta.uz/ru/rss/'; },
   },
   FOREIGN: {
-    BBC_SPORT: 'https://feeds.bbci.co.uk/sport/rss.xml',
-    ESPN_FOOTBALL: 'https://www.espn.com/espn/rss/soccer/news',
-    TECHCRUNCH: 'https://techcrunch.com/feed/',
-    THE_VERGE_TECH: 'https://www.theverge.com/rss/index.xml',
+    get BBC_SPORT() { return getAllForeignFeeds().find(f => f.name === 'BBC Sport')?.url || 'https://feeds.bbci.co.uk/sport/rss.xml'; },
+    get ESPN_FOOTBALL() { return getAllForeignFeeds().find(f => f.name === 'ESPN Football')?.url || 'https://www.espn.com/espn/rss/soccer/news'; },
+    get TECHCRUNCH() { return getAllForeignFeeds().find(f => f.name === 'TechCrunch')?.url || 'https://techcrunch.com/feed/'; },
+    get THE_VERGE_TECH() { return getAllForeignFeeds().find(f => f.name === 'The Verge Tech')?.url || 'https://www.theverge.com/rss/index.xml'; },
   },
 };

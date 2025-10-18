@@ -1,32 +1,10 @@
 import cron from "node-cron";
-import { fetchTrendingTopics } from "./services/trend-service";
-import { autoGenerateArticles, autoGenerateRSSArticles } from "./services/article-service";
+import { autoGenerateRSSArticles } from "./services/article-service";
 import { storage } from "./storage";
 
 export function initializeScheduler() {
   console.log("📅 Scheduler initialized");
-
-  // Fetch trends every 2 hours
-  cron.schedule("0 */2 * * *", async () => {
-    console.log("🔍 Fetching trending topics...");
-    try {
-      await fetchTrendingTopics();
-      console.log("✅ Trends fetched successfully");
-    } catch (error) {
-      console.error("❌ Error fetching trends:", error);
-    }
-  });
-
-  // Auto-generate articles every 3 hours during publishing window (7:00-21:00)
-  cron.schedule("0 */3 7-21 * * *", async () => {
-    console.log("✍️ Auto-generating articles...");
-    try {
-      await autoGenerateArticles();
-      console.log("✅ Articles generated successfully");
-    } catch (error) {
-      console.error("❌ Error generating articles:", error);
-    }
-  });
+  console.log("ℹ️  NEW STRATEGY: Source-based Content Model (RSS only, no Google Trends)");
 
   // Auto-generate RSS articles every 4 hours (offset from trend generation)
   cron.schedule("0 1,5,9,13,17,21 * * *", async () => {

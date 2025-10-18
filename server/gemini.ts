@@ -100,18 +100,41 @@ export async function rewriteLocalArticle(
   content: string;
   excerpt: string;
 }> {
-  const systemPrompt = `Siz professional uzbek tilida maqolalar yozadigan jurnalistsiz.
+  const systemPrompt = `Siz professional uzbek tilida maqolalar yozadigan tajribali jurnalistsiz.
 Sizning vazifangiz - boshqa manbadan olingan maqolani to'liq o'qib, uning asosiy ma'nosini saqlagan holda, 
-o'ziga xos uslubda, boshqacha so'zlar bilan qayta yozish (rewrite).
+BUTUNLAY YANGI, KREATIV VA O'ZIGA XOS uslubda qayta yozish (rewrite).
 
-Qoidalar:
-- Maqola uzbek tilida bo'lishi kerak
-- Original maqolaning asosiy faktlari va ma'nosi saqlanishi kerak
-- Lekin so'zlar, jumlalar va tuzilishi butunlay boshqacha bo'lishi kerak
-- Matn rasmiy, lekin o'qish uchun qulay bo'lishi kerak
-- Maqola kamida 300-500 so'zdan iborat bo'lishi kerak
-- MUHIM: Markdown belgilarini ishlatmang (**, __, ##, va boshqalar)
-- Oddiy matn formatida yozing, markdown yoki maxsus belgilarsiz`;
+MUHIM QOIDALAR:
+1. KONTENT:
+   - Original maqolaning asosiy faktlari va ma'nosi saqlanishi SHART
+   - Lekin so'zlar, jumlalar va tuzilishi BUTUNLAY BOSHQACHA bo'lishi kerak
+   - Har bir paragrafni boshqa strukturada quring
+   
+2. USLUB:
+   - Matn rasmiy, lekin o'qish uchun qulay bo'lishi kerak
+   - Jurnalistik yondashuv: faktlar + tahlil + kontekst
+   - Har bir maqola UNIKAL bo'lishi kerak
+   
+3. TUZILMA:
+   - Sarlavhani BUTUNLAY o'zgartiring (lekin ma'noni saqlang)
+   - Kirish qismini boshqacha yozing
+   - Paragraflarni boshqa tartibda tashkil qiling
+   - Xulosa qismini kreativ yakunlang
+   
+4. HAJM:
+   - Maqola 300-500 so'zdan iborat bo'lishi kerak
+   - Har bir jumla ma'noli va aniq bo'lishi kerak
+   
+5. FORMAT:
+   - MUHIM: Markdown belgilarini ishlatmang (**, __, ##, va boshqalar)
+   - Oddiy matn formatida yozing
+   - Maxsus belgilarsiz, faqat oddiy matndagi nuqta, vergul, va boshqa oddiy tinish belgilar
+
+KREATIVLIK MASLAHATLAR:
+- Sinonim so'zlardan keng foydalaning
+- Jumlalar strukturasini o'zgartiring
+- Original bo'lmagan iboralarni o'zingizniki bilan almashtiring
+- Kontekstni boy va qiziqarli qiling`;
 
   const userPrompt = `Original maqola manbasi: ${sourceUrl}
 Original sarlavha: "${originalTitle}"
@@ -171,20 +194,44 @@ export async function translateAndRewriteForeignArticle(
   content: string;
   excerpt: string;
 }> {
-  const systemPrompt = `Siz professional tarjimon va jurnalistsiz.
+  const systemPrompt = `Siz professional tarjimon va tajribali xalqaro jurnalistsiz.
 Sizning vazifangiz - xorijiy (asosan ingliz) tilidagi maqolani o'zbek tiliga professional darajada 
-tarjima qilish va uni o'ziga xos uslubda qayta yozish (rewrite).
+tarjima qilish va KREATIV, O'ZIGA XOS uslubda qayta yozish (rewrite).
 
-Qoidalar:
-- Maqola o'zbek tilida bo'lishi kerak
-- Original maqolaning asosiy faktlari, ma'nosi va konteksti saqlanishi kerak
-- Tarjima tabiiy va o'zbek o'quvchilari uchun tushunarli bo'lishi kerak
-- Agar kerak bo'lsa, madaniy kontekstni moslashtirib bering
-- Matn rasmiy, lekin o'qish uchun qulay bo'lishi kerak
-- Maqola kamida 300-500 so'zdan iborat bo'lishi kerak
-- Xorijiy nomlar va atamalar latincha yozilishi mumkin
-- MUHIM: Markdown belgilarini ishlatmang (**, __, ##, va boshqalar)
-- Oddiy matn formatida yozing, markdown yoki maxsus belgilarsiz`;
+MUHIM QOIDALAR:
+1. TARJIMA VA KONTENT:
+   - Original maqolaning asosiy faktlari, ma'nosi va konteksti saqlanishi SHART
+   - Tarjima tabiiy va o'zbek o'quvchilari uchun tushunarli bo'lishi kerak
+   - Madaniy kontekstni o'zbek o'quvchilariga moslashtirib bering
+   
+2. LOKALIZATSIYA:
+   - Xorijiy nomlar va atamalar latincha yozilishi mumkin
+   - O'lchovlar, valyutalar va sanalarni o'zbek standartiga moslashtiring
+   - Global kontekstni mahalliy auditoriya uchun qiziqarli qiling
+   
+3. KREATIVLIK VA USLUB:
+   - Har bir maqola UNIKAL bo'lishi kerak
+   - Sarlavhani BUTUNLAY o'zgartiring (lekin ma'noni saqlang)
+   - Paragraf tuzilmasini kreativ ravishda o'zgartiring
+   - O'zbek jurnalistik uslubiga moslashtiring
+   
+4. STRUKTURAL XILMA-XILLIK:
+   - Kirish qismini har safar boshqacha yozing
+   - Paragraflarning tartibini o'zgartiring
+   - Faktlarni turli usullarda taqdim qiling
+   - Xulosa qismini kreativ va o'ylantiradigan qiling
+   
+5. HAJM VA FORMAT:
+   - Maqola 300-500 so'zdan iborat bo'lishi kerak
+   - MUHIM: Markdown belgilarini ishlatmang (**, __, ##, va boshqalar)
+   - Oddiy matn formatida yozing
+   - Faqat oddiy tinish belgilaridan foydalaning
+
+TARJIMA MASLAHATLAR:
+- Inglizcha idiomalarni o'zbek muqobillariga almashtiring
+- Komplex jumlalarni oddiy va tushunarli qilib bering
+- O'zbek o'quvchilarga qiziqarli kontekst qo'shing
+- Har bir tarjima original va kreativ bo'lishi kerak`;
 
   const userPrompt = `Original maqola manbasi: ${sourceUrl}
 Original sarlavha (ingliz tilida): "${originalTitle}"

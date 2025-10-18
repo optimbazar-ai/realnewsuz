@@ -5,7 +5,7 @@ import {
   generateArticleFromLocalRSS, 
   generateArticleFromForeignRSS 
 } from "../article-generator";
-import { RSS_FEEDS } from "../rss";
+import { getAllLocalFeeds, getAllForeignFeeds } from "../rss";
 
 // Kutilmagan xatoliklar uchun pauza yaratuvchi yordamchi funksiya
 const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
@@ -174,6 +174,7 @@ export async function autoGenerateArticles(): Promise<void> {
 export async function autoGenerateRSSArticles(): Promise<void> {
   try {
     console.log("📰 Starting automated RSS article generation...");
+    console.log("ℹ️  SOURCE-BASED CONTENT MODEL: Processing all trusted RSS feeds");
     
     // Get all existing articles to track used photos
     const existingArticles = await storage.getAllArticles();
@@ -181,7 +182,7 @@ export async function autoGenerateRSSArticles(): Promise<void> {
       .map(a => a.photoId)
       .filter((id): id is string => id !== null);
 
-    // Get existing article source URLs to avoid duplicates
+    // Get existing article source URLs to avoid duplicates (CRITICAL!)
     const existingSourceUrls = new Set(
       existingArticles
         .map(a => a.sourceUrl)
@@ -192,56 +193,70 @@ export async function autoGenerateRSSArticles(): Promise<void> {
     const errors: string[] = [];
 
     // Process LOCAL RSS feeds (Uzbek news)
-    const localFeeds = Object.entries(RSS_FEEDS.LOCAL);
-    for (const [feedName, feedUrl] of localFeeds) {
+    const localFeeds = getAllLocalFeeds();
+    console.log(`📊 Found ${localFeeds.length} local RSS feeds to process`);
+    
+    for (const feed of localFeeds) {
       try {
-        console.log(`📰 Processing local RSS: ${feedName}`);
-        const articleData = await generateArticleFromLocalRSS(feedUrl, usedPhotoIds);
+        console.log(`📰 Processing local RSS: ${feed.name} (${feed.language})`);
+        const articleData = await generateArticleFromLocalRSS(feed.url, usedPhotoIds);
         
         if (articleData && articleData.sourceUrl && !existingSourceUrls.has(articleData.sourceUrl)) {
           await storage.createArticle(articleData);
+          existingSourceUrls.add(articleData.sourceUrl);
           articlesCreated++;
-          console.log(`✅ Created draft article from ${feedName}: "${articleData.title}"`);
+          console.log(`✅ Created draft article from ${feed.name}: "${articleData.title}"`);
           
           await storage.createLog({
             action: "rss_article_generated",
             status: "success",
-            message: `RSS maqola yaratildi (${feedName}): ${articleData.title}`,
-            metadata: JSON.stringify({ source: feedName, sourceType: "LOCAL_RSS" }),
+            message: `RSS maqola yaratildi (${feed.name}): ${articleData.title}`,
+            metadata: JSON.stringify({ 
+              source: feed.name, 
+              sourceType: "LOCAL_RSS",
+              language: feed.language 
+            }),
           });
         } else if (articleData && existingSourceUrls.has(articleData.sourceUrl!)) {
-          console.log(`⏭️ Skipping duplicate article from ${feedName}`);
+          console.log(`⏭️ Skipping duplicate article from ${feed.name}`);
         }
       } catch (error) {
-        console.error(`❌ Error processing ${feedName}:`, error);
-        errors.push(`${feedName}: ${error}`);
+        console.error(`❌ Error processing ${feed.name}:`, error);
+        errors.push(`${feed.name}: ${error}`);
       }
     }
 
     // Process FOREIGN RSS feeds (International news - translate to Uzbek)
-    const foreignFeeds = Object.entries(RSS_FEEDS.FOREIGN);
-    for (const [feedName, feedUrl] of foreignFeeds) {
+    const foreignFeeds = getAllForeignFeeds();
+    console.log(`🌍 Found ${foreignFeeds.length} foreign RSS feeds to process`);
+    
+    for (const feed of foreignFeeds) {
       try {
-        console.log(`🌍 Processing foreign RSS: ${feedName}`);
-        const articleData = await generateArticleFromForeignRSS(feedUrl, usedPhotoIds);
+        console.log(`🌍 Processing foreign RSS: ${feed.name} (${feed.category})`);
+        const articleData = await generateArticleFromForeignRSS(feed.url, usedPhotoIds);
         
         if (articleData && articleData.sourceUrl && !existingSourceUrls.has(articleData.sourceUrl)) {
           await storage.createArticle(articleData);
+          existingSourceUrls.add(articleData.sourceUrl);
           articlesCreated++;
-          console.log(`✅ Created draft article from ${feedName}: "${articleData.title}"`);
+          console.log(`✅ Created draft article from ${feed.name}: "${articleData.title}"`);
           
           await storage.createLog({
             action: "rss_article_generated",
             status: "success",
-            message: `Xorijiy RSS maqola tarjima qilindi (${feedName}): ${articleData.title}`,
-            metadata: JSON.stringify({ source: feedName, sourceType: "FOREIGN_RSS" }),
+            message: `Xorijiy RSS maqola tarjima qilindi (${feed.name}): ${articleData.title}`,
+            metadata: JSON.stringify({ 
+              source: feed.name, 
+              sourceType: "FOREIGN_RSS",
+              category: feed.category 
+            }),
           });
         } else if (articleData && existingSourceUrls.has(articleData.sourceUrl!)) {
-          console.log(`⏭️ Skipping duplicate article from ${feedName}`);
+          console.log(`⏭️ Skipping duplicate article from ${feed.name}`);
         }
       } catch (error) {
-        console.error(`❌ Error processing ${feedName}:`, error);
-        errors.push(`${feedName}: ${error}`);
+        console.error(`❌ Error processing ${feed.name}:`, error);
+        errors.push(`${feed.name}: ${error}`);
       }
     }
 
@@ -253,10 +268,16 @@ export async function autoGenerateRSSArticles(): Promise<void> {
       action: "auto_rss_generation",
       status: errors.length > 0 ? "partial_success" : "success",
       message: finalMessage,
-      metadata: JSON.stringify({ articlesCreated, errors }),
+      metadata: JSON.stringify({ 
+        articlesCreated, 
+        errors,
+        totalFeedsProcessed: localFeeds.length + foreignFeeds.length,
+        localFeeds: localFeeds.length,
+        foreignFeeds: foreignFeeds.length
+      }),
     });
 
-    console.log(`✅ RSS automation complete: ${articlesCreated} articles created`);
+    console.log(`✅ RSS automation complete: ${articlesCreated} articles created from ${localFeeds.length + foreignFeeds.length} feeds`);
   } catch (error) {
     console.error("❌ Error in RSS auto-generation:", error);
     await storage.createLog({
