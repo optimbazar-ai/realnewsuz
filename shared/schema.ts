@@ -10,6 +10,9 @@ export const articles = pgTable("articles", {
   content: text("content").notNull(),
   excerpt: text("excerpt").notNull(),
   imageUrl: text("image_url"),
+  photographerName: text("photographer_name"),
+  photographerUrl: text("photographer_url"),
+  photoId: text("photo_id"),
   category: text("category").notNull(),
   trendKeyword: text("trend_keyword"),
   status: text("status").notNull().default("draft"), // draft, scheduled, published, failed
