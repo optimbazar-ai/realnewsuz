@@ -6,6 +6,12 @@ import { users } from "@shared/schema";
 import { initializeScheduler } from "./scheduler";
 import { fetchTrendingTopics } from "./services/trend-service";
 import { generateArticleFromTrendId } from "./services/article-service";
+import { 
+  generateArticleFromLocalRSS,
+  generateArticleFromForeignRSS,
+  generateArticlesFromAllSources
+} from "./article-generator";
+import { RSS_FEEDS } from "./rss";
 import { z } from "zod";
 import passport, { requireAuth } from "./auth";
 import bcrypt from "bcryptjs";
@@ -195,6 +201,124 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error fetching logs:", error);
       res.status(500).json({ error: "Failed to fetch logs" });
     }
+  });
+
+  // RSS article generation endpoints
+  app.post("/api/articles/generate/local-rss", requireAuth, async (req, res) => {
+    try {
+      const schema = z.object({ feedUrl: z.string().url().optional() });
+      const { feedUrl } = schema.parse(req.body);
+      
+      const selectedFeed = feedUrl || RSS_FEEDS.LOCAL.KUN_UZ;
+      const articleData = await generateArticleFromLocalRSS(selectedFeed);
+      
+      if (!articleData) {
+        return res.status(400).json({ error: "Failed to generate article from RSS feed" });
+      }
+      
+      const article = await storage.createArticle(articleData);
+      
+      await storage.createLog({
+        action: "article_generated_local_rss",
+        status: "success",
+        message: `Mahalliy RSS'dan maqola yaratildi: ${article.title}`,
+        metadata: JSON.stringify({ feedUrl: selectedFeed, articleId: article.id }),
+      });
+      
+      res.json(article);
+    } catch (error) {
+      console.error("Error generating article from local RSS:", error);
+      await storage.createLog({
+        action: "article_generated_local_rss",
+        status: "error",
+        message: `Mahalliy RSS'dan maqola yaratishda xatolik: ${error}`,
+      });
+      res.status(500).json({ error: "Failed to generate article from local RSS" });
+    }
+  });
+
+  app.post("/api/articles/generate/foreign-rss", requireAuth, async (req, res) => {
+    try {
+      const schema = z.object({ feedUrl: z.string().url().optional() });
+      const { feedUrl } = schema.parse(req.body);
+      
+      const selectedFeed = feedUrl || RSS_FEEDS.FOREIGN.BBC_SPORT;
+      const articleData = await generateArticleFromForeignRSS(selectedFeed);
+      
+      if (!articleData) {
+        return res.status(400).json({ error: "Failed to generate article from RSS feed" });
+      }
+      
+      const article = await storage.createArticle(articleData);
+      
+      await storage.createLog({
+        action: "article_generated_foreign_rss",
+        status: "success",
+        message: `Xorijiy RSS'dan maqola yaratildi va tarjima qilindi: ${article.title}`,
+        metadata: JSON.stringify({ feedUrl: selectedFeed, articleId: article.id }),
+      });
+      
+      res.json(article);
+    } catch (error) {
+      console.error("Error generating article from foreign RSS:", error);
+      await storage.createLog({
+        action: "article_generated_foreign_rss",
+        status: "error",
+        message: `Xorijiy RSS'dan maqola yaratishda xatolik: ${error}`,
+      });
+      res.status(500).json({ error: "Failed to generate article from foreign RSS" });
+    }
+  });
+
+  app.post("/api/articles/generate/all", requireAuth, async (req, res) => {
+    try {
+      const results = await generateArticlesFromAllSources();
+      const createdArticles = [];
+      
+      if (results.localRSS) {
+        const article = await storage.createArticle(results.localRSS);
+        createdArticles.push(article);
+        await storage.createLog({
+          action: "article_generated_local_rss",
+          status: "success",
+          message: `Mahalliy RSS'dan maqola yaratildi: ${article.title}`,
+        });
+      }
+      
+      if (results.foreignRSS) {
+        const article = await storage.createArticle(results.foreignRSS);
+        createdArticles.push(article);
+        await storage.createLog({
+          action: "article_generated_foreign_rss",
+          status: "success",
+          message: `Xorijiy RSS'dan maqola yaratildi: ${article.title}`,
+        });
+      }
+      
+      res.json({ 
+        success: true, 
+        articlesCreated: createdArticles.length,
+        articles: createdArticles 
+      });
+    } catch (error) {
+      console.error("Error generating articles from all sources:", error);
+      res.status(500).json({ error: "Failed to generate articles" });
+    }
+  });
+
+  app.get("/api/rss/feeds", (req, res) => {
+    res.json({
+      local: Object.entries(RSS_FEEDS.LOCAL).map(([key, url]) => ({ 
+        key, 
+        url, 
+        name: key.replace(/_/g, ' ')
+      })),
+      foreign: Object.entries(RSS_FEEDS.FOREIGN).map(([key, url]) => ({ 
+        key, 
+        url, 
+        name: key.replace(/_/g, ' ')
+      })),
+    });
   });
 
   const httpServer = createServer(app);
