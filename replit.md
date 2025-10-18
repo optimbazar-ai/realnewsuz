@@ -18,22 +18,38 @@ The platform features a professional news website aesthetic, inspired by `qalamp
 ### Technical Implementations
 The backend is built with Express.js and Node.js. PostgreSQL (Neon) with Drizzle ORM is used for the database. Google Gemini 2.0 Flash powers AI article generation, and `node-cron` handles automated tasks.
 
+### Content Strategy (October 18, 2025 Update)
+**SOURCE-BASED CONTENT MODEL** - Real News uses only verified RSS feeds from trusted news organizations. Google Trends functionality has been disabled in favor of this more reliable approach.
+
+**RSS Sources (20 Total):**
+- **5 Local Uzbek Sources:** Kun.uz, Daryo.uz, Gazeta.uz, Spot.uz, UzA.uz
+- **15 International Sources:** BBC Sport, ESPN, Sky Sports, TechCrunch, The Verge, Ars Technica, Wired, BBC News, Al Jazeera, Reuters, Bloomberg, Financial Times, Science Daily, National Geographic, New Scientist
+
+**Configuration:** All RSS feeds are centralized in `config/rss-feeds.json` for easy maintenance and scaling.
+
 ### Feature Specifications
-1.  **Public Site**: Displays published articles, trending topics, and individual article detail pages with responsive design. Includes SEO meta tags, Open Graph tags, and social sharing features.
-2.  **Admin Dashboard**: Secured with session-based authentication (bcrypt for password hashing). Provides system statistics, activity timelines, articles management (including drafts), and manual triggering of trend fetching and article generation. All AI/RSS generated articles are saved as drafts, requiring manual admin approval for publication.
+1.  **Public Site**: Displays published articles, trending topics, and individual article detail pages with responsive design. Includes SEO meta tags, Open Graph tags, and social sharing features. Every article displays its source URL for transparency.
+2.  **Admin Dashboard**: Secured with session-based authentication (bcrypt for password hashing). Provides system statistics, activity timelines, articles management (including drafts), and manual triggering of RSS automation. All RSS-generated articles are saved as drafts, requiring manual admin approval for publication.
 3.  **Automation System**:
-    *   Trend detection every 2 hours.
-    *   Automated article generation every 3 hours (7:00 AM - 9:00 PM).
-    *   AI-powered article generation from various sources (AI_TREND, LOCAL_RSS, FOREIGN_RSS).
-    *   Automatic categorization of trends.
-    *   System activity logging and daily log cleanup.
+    *   RSS automation every 4 hours (01:00, 05:00, 09:00, 13:00, 17:00, 21:00)
+    *   AI-powered article generation from RSS sources (LOCAL_RSS, FOREIGN_RSS)
+    *   Enhanced Gemini prompts for creative, unique content
+    *   Automatic categorization based on source
+    *   Duplicate prevention via sourceUrl tracking
+    *   System activity logging and daily log cleanup at 02:00
 
 ### System Design Choices
-*   **Data Models**: Includes Users, Articles (with `sourceType` and `sourceUrl`), Trends, and System Logs.
-*   **Content Model**: Implements a hybrid content generation system:
-    *   **AI_TREND**: AI-generated articles from Google Trends.
-    *   **LOCAL_RSS**: Rewritten articles from local Uzbek news sources (e.g., Kun.uz, Daryo.uz).
-    *   **FOREIGN_RSS**: Translated and rewritten articles from international sources (e.g., BBC Sport, TechCrunch).
+*   **Data Models**: Includes Users, Articles (with `sourceType` and `sourceUrl`), Trends (for categories), and System Logs.
+*   **Content Model**: Implements a **source-based content generation system**:
+    *   **LOCAL_RSS**: Rewritten articles from local Uzbek news sources (5 feeds: Kun.uz, Daryo.uz, Gazeta.uz, Spot.uz, UzA.uz).
+    *   **FOREIGN_RSS**: Translated and rewritten articles from international sources (15 feeds across sports, tech, world news, business, science).
+    *   **AI_TREND**: DEPRECATED - Google Trends functionality disabled in favor of verified RSS sources.
+*   **RSS Configuration**: Centralized in `config/rss-feeds.json` with structured metadata (name, URL, description, language/category).
+*   **Content Quality**:
+    *   Enhanced Gemini prompts with creativity and structural guidelines
+    *   Duplicate prevention via sourceUrl tracking
+    *   All articles include source URL for transparency
+    *   Up to 20 unique articles per automation run
 *   **Editorial Control System**: All automatically generated articles are initially saved as drafts, requiring admin review and explicit publication. This enhances content quality and trustworthiness.
 *   **API Endpoints**: Categorized into Public, Authentication, and Protected (requiring authentication) for managing articles, trends, and system operations.
 *   **SEO**: Comprehensive SEO meta tags, Open Graph tags, `robots.txt`, and a dynamic `sitemap.xml` are implemented. Google Analytics 4 is integrated for tracking.
