@@ -54,6 +54,7 @@ Real News is an automated news content platform for Uzbekistan that uses AI to d
 - `GET /api/articles/:id` - Get single article
 - `GET /api/trends` - Get all trends
 - `GET /api/logs` - Get system logs
+- `GET /api/sitemap.xml` - Generate XML sitemap for search engines
 
 **Authentication Endpoints:**
 - `POST /api/auth/register` - Register first admin (only works when no users exist)
@@ -87,9 +88,14 @@ Real News is an automated news content platform for Uzbekistan that uses AI to d
 - **Style**: Professional news website aesthetic with red accents
 
 ## Environment Variables
+**Required:**
 - `DATABASE_URL` - PostgreSQL connection string
 - `GEMINI_API_KEY` - Google Gemini API key for article generation
+- `UNSPLASH_ACCESS_KEY` - Unsplash API key for article images
 - `SESSION_SECRET` - Session encryption key
+
+**Optional:**
+- `VITE_GA_MEASUREMENT_ID` - Google Analytics 4 Measurement ID (starts with "G-")
 - `PORT` - Server port (default: 5000)
 
 ## Development Workflow
@@ -195,6 +201,49 @@ Real News is an automated news content platform for Uzbekistan that uses AI to d
   - Provides both local and international perspective
   - Ensures all content is unique and optimized for Uzbek audience
   - Transparent source attribution builds trust
+
+### SEO and Marketing Implementation
+- **Comprehensive SEO Meta Tags** using react-helmet-async
+  - Dinamik `<title>` va `<meta description>` har bir sahifa uchun
+  - Home page: Optimized title and description for main landing page
+  - Article Detail page: Dynamic meta tags generated from article data
+  - All meta tags with sensible fallbacks for missing data
+- **Open Graph (OG) Tags** for social media optimization
+  - `og:title`, `og:description`, `og:image`, `og:url`, `og:type`
+  - Article-specific OG tags with publication time and category
+  - Twitter Card meta tags for better Twitter sharing
+  - Enables rich previews when articles are shared on social platforms
+- **Social Sharing Features**
+  - Telegram share button using TelegramShareButton from react-share
+  - Facebook share button using FacebookShareButton with hashtags
+  - Copy to clipboard functionality with toast notifications
+  - Improves content virality and user engagement
+- **Search Engine Optimization Tools**
+  - `robots.txt` file in `client/public/`
+    - Allows all pages except admin, login, register
+    - Points to sitemap.xml for search engine crawlers
+  - `/api/sitemap.xml` endpoint
+    - Dynamically generates XML sitemap from published articles
+    - Includes homepage and all article URLs
+    - Provides lastmod, changefreq, and priority for each URL
+    - Uses REPLIT_DEV_DOMAIN for correct URLs
+- **Google Analytics 4 Integration**
+  - `client/src/lib/analytics.ts` - GA initialization and tracking utilities
+  - `client/src/hooks/use-analytics.tsx` - Automatic page view tracking
+  - Tracks all route changes using Wouter integration
+  - Custom event tracking support via `trackEvent()` function
+  - Safe fallback when VITE_GA_MEASUREMENT_ID is not configured
+  - TypeScript types defined in `client/env.d.ts`
+- **Implementation Details**:
+  - HelmetProvider wraps entire app in `App.tsx`
+  - Dynamic meta tags update on navigation
+  - Analytics initialize once on app mount
+  - All tracking respects user privacy and GDPR best practices
+- **Benefits**:
+  - Better search engine discoverability (Google, Yandex)
+  - Rich social media previews increase click-through rates
+  - Analytics data helps understand audience behavior
+  - Professional SEO setup builds credibility
 
 ## User Preferences
 - Uzbek language for all generated content
