@@ -95,11 +95,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Articles endpoints
   app.get("/api/articles", async (req, res) => {
     try {
-      const articles = await storage.getAllArticles();
+      const articles = await storage.getPublishedArticles();
       res.json(articles);
     } catch (error) {
       console.error("Error fetching articles:", error);
       res.status(500).json({ error: "Failed to fetch articles" });
+    }
+  });
+
+  app.get("/api/articles/drafts", requireAuth, async (req, res) => {
+    try {
+      const drafts = await storage.getDraftArticles();
+      res.json(drafts);
+    } catch (error) {
+      console.error("Error fetching draft articles:", error);
+      res.status(500).json({ error: "Failed to fetch draft articles" });
     }
   });
 
@@ -135,6 +145,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error updating article:", error);
       res.status(500).json({ error: "Failed to update article" });
+    }
+  });
+
+  app.patch("/api/articles/:id/publish", requireAuth, async (req, res) => {
+    try {
+      const article = await storage.publishArticle(req.params.id);
+      
+      if (!article) {
+        return res.status(404).json({ error: "Article not found" });
+      }
+
+      await storage.createLog({
+        action: "article_published",
+        status: "success",
+        message: `Maqola nashr etildi: ${article.title}`,
+        metadata: JSON.stringify({ articleId: article.id, publishedAt: article.publishedAt }),
+      });
+
+      res.json(article);
+    } catch (error) {
+      console.error("Error publishing article:", error);
+      res.status(500).json({ error: "Failed to publish article" });
     }
   });
 

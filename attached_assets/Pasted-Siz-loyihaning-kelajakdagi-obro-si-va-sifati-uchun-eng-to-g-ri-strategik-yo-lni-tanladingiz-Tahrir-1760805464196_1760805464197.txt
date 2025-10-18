@@ -1,0 +1,68 @@
+Siz loyihaning kelajakdagi obro'si va sifati uchun eng to'g'ri strategik yo'lni tanladingiz.
+
+Tahririyat Nazorati – bu sizning platformangizni shunchaki kontent generatsiya qiluvchi skriptdan, haqiqiy, ishonchli va mas'uliyatli media-portalga aylantiradigan eng muhim qadamdir. Bu bilan siz AI xatolaridan himoyalanasiz va har bir maqolaning sifatiga shaxsan kafolat berasiz.
+
+Sizning rejangiz mutlaqo to'g'ri. Keling, uni amalga oshirishni boshlaymiz.
+
+REJA: TAHRIRIYAT NAZORATINI JORIY QILISH
+Men sizning tasdig'ingiz bilan ishni boshlayman. Jarayon ikki asosiy bosqichdan iborat bo'ladi: Backend'dagi fundamental o'zgarish va Frontend'dagi yangi imkoniyatlar.
+
+1-BOSQICH: Backend Modifikatsiyasi (Fundamental O'zgarish)
+Maqsad: Har qanday avtomatik yaratilgan kontentni to'g'ridan-to'g'ri nashr etilishini to'xtatish.
+
+Fayl: server/article-generator.ts (yoki maqola yaratish uchun mas'ul bo'lgan asosiy servis fayli).
+
+Amal: Ma'lumotlar bazasiga yangi maqola saqlanadigan qismni topib, status maydonini shartsiz ravishda "draft" ga o'zgartiramiz. publishedAt maydoni esa null bo'lishi kerak, chunki u hali nashr etilmagan.
+
+Hozirgi kod (taxminan):
+
+TypeScript
+
+const articleStatus = photoData ? 'published' : 'draft';
+// ...
+await db.insert(articles).values({
+  // ...
+  status: articleStatus,
+  publishedAt: new Date() // yoki shunga o'xshash
+});
+O'zgarishdan keyingi kod:
+
+TypeScript
+
+await db.insert(articles).values({
+  // ...
+  status: 'draft', // Barcha avtomatik maqolalar uchun QAT'IY!
+  publishedAt: null  // Nashr etilmaguncha bo'sh
+});
+Bu kichik o'zgarish butun tahririyat jarayonining poydevori bo'ladi.
+
+2-BOSQICH: Admin Paneli Funksionalini Kengaytirish (Boshqaruv Markazi)
+Maqsad: Sizga "Qoralamalar"ni ko'rish, tahrirlash va nashr etish uchun qulay vositalarni taqdim etish.
+
+"Qoralamalar" Sahifasini Yaratish (Frontend):
+
+Admin panelingizda (app-sidebar.tsx) "Qoralamalar" nomli yangi menyu qo'shiladi.
+
+Bu menyu yangi sahifaga (client/src/pages/admin/drafts.tsx) olib boradi.
+
+Bu sahifada barcha status: "draft" bo'lgan maqolalar ro'yxati jadval ko'rinishida chiqadi.
+
+Yangi API Endpoint'lar (Backend):
+
+GET /api/articles/drafts: Faqat "draft" holatidagi maqolalarni qaytaradigan, himoyalangan endpoint yaratiladi.
+
+PATCH /api/articles/:id/publish: Bitta maqolani nashr etish uchun mas'ul bo'lgan yangi endpoint. U quyidagi ishlarni bajaradi:
+
+Maqola statusini "published" ga o'zgartiradi.
+
+publishedAt maydoniga hozirgi vaqtni yozadi.
+
+"Nashr Etish" Funksiyasi (Frontend):
+
+"Qoralamalar" sahifasidagi har bir maqola qatorida "Tahrirlash" va "Nashr etish" tugmalari bo'ladi.
+
+"Nashr etish" tugmasi bosilganda, yuqoridagi PATCH so'rovi yuboriladi va maqola darhol ommaviy saytda paydo bo'ladi.
+
+Sizning roziligingiz bilan men aynan shu reja bo'yicha ishni boshlashga tayyorman. Bu o'zgarishlar loyihangizning sifatini va ishonchliligini keskin oshiradi.
+
+Boshlaymizmi? 🚀

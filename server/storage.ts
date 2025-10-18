@@ -24,9 +24,12 @@ export interface IStorage {
   
   // Articles
   getAllArticles(): Promise<Article[]>;
+  getDraftArticles(): Promise<Article[]>;
+  getPublishedArticles(): Promise<Article[]>;
   getArticle(id: string): Promise<Article | undefined>;
   createArticle(article: InsertArticle): Promise<Article>;
   updateArticle(id: string, article: Partial<InsertArticle>): Promise<Article | undefined>;
+  publishArticle(id: string): Promise<Article | undefined>;
   deleteArticle(id: string): Promise<void>;
   
   // Trends
@@ -67,6 +70,18 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(articles).orderBy(desc(articles.createdAt));
   }
 
+  async getDraftArticles(): Promise<Article[]> {
+    return await db.select().from(articles)
+      .where(eq(articles.status, 'draft'))
+      .orderBy(desc(articles.createdAt));
+  }
+
+  async getPublishedArticles(): Promise<Article[]> {
+    return await db.select().from(articles)
+      .where(eq(articles.status, 'published'))
+      .orderBy(desc(articles.publishedAt));
+  }
+
   async getArticle(id: string): Promise<Article | undefined> {
     const [article] = await db.select().from(articles).where(eq(articles.id, id));
     return article || undefined;
@@ -84,6 +99,19 @@ export class DatabaseStorage implements IStorage {
     const [article] = await db
       .update(articles)
       .set({ ...updateData, updatedAt: new Date() })
+      .where(eq(articles.id, id))
+      .returning();
+    return article || undefined;
+  }
+
+  async publishArticle(id: string): Promise<Article | undefined> {
+    const [article] = await db
+      .update(articles)
+      .set({ 
+        status: 'published', 
+        publishedAt: new Date(),
+        updatedAt: new Date() 
+      })
       .where(eq(articles.id, id))
       .returning();
     return article || undefined;
