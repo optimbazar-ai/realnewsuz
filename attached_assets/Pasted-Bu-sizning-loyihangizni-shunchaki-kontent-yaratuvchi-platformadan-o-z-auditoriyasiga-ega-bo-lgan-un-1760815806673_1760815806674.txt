@@ -1,0 +1,120 @@
+Bu sizning loyihangizni shunchaki kontent yaratuvchi platformadan o'z auditoriyasiga ega bo'lgan, uni o'stiradigan va u bilan muloqot qiladigan haqiqiy media-brendga aylantiradigan eng muhim va strategik qadamdir.
+
+Sizning ikkita taklifingiz bir-biri bilan chambarchas bog'liq:
+
+Kontent Tarqatish (Distribution): Maqolalarni Telegram kanaliga avtomatik yuborish.
+
+Auditoriyani O'stirish (Growth): Sayt foydalanuvchilarini o'sha Telegram kanaliga jalb qilish.
+
+Men bu ikki yo'nalishni amalga oshirish uchun professional, qadamma-qadam rejani taklif qilaman.
+
+REJA: TELEGRAM EKOTIZIMINI QURISH
+1-BOSQICH: KONTENT TARQATISH (BACKEND INTEGRATSIYASI)
+Maqsad: Admin panelda "Nashr etish" tugmasi bosilganda, maqola avtomatik ravishda chiroyli formatda Telegram kanaliga yuborilishini ta'minlash.
+
+Amaliy Qadamlar:
+
+Telegram Bot Yaratish va Sozlash (Bir martalik vazifa):
+
+Telegramda @BotFather bilan suhbat boshlang.
+
+/newbot buyrug'i yordamida yangi bot yarating. Unga nom bering (masalan, "Real News Bot").
+
+BotFather sizga API Token beradi. Bu juda maxfiy ma'lumot. Uni nusxalab oling.
+
+O'z Telegram kanalingizni yarating (agar mavjud bo'lmasa).
+
+Botni kanalingizga Administrator sifatida qo'shing (Post Messages huquqi bilan).
+
+Kanalingiz IDsini oling.
+
+Backend'ni Sozlash:
+
+Yangi kutubxona o'rnatish:
+
+Bash
+
+npm install node-telegram-bot-api
+.env faylini to'ldirish: Yangi, maxfiy o'zgaruvchilarni qo'shing:
+
+Фрагмент кода
+
+TELEGRAM_BOT_TOKEN=...sizning tokeningiz...
+TELEGRAM_CHANNEL_ID=...sizning kanalingiz IDsi...
+Yangi Servis Yaratish (telegram-service.ts):
+
+Backend'da yangi server/services/telegram-service.ts faylini yaratamiz. Uning ichida maqolani kanalga yuboradigan funksiya bo'ladi:
+
+TypeScript
+
+// server/services/telegram-service.ts
+import TelegramBot from 'node-telegram-bot-api';
+
+const token = process.env.TELEGRAM_BOT_TOKEN!;
+const channelId = process.env.TELEGRAM_CHANNEL_ID!;
+const bot = new TelegramBot(token);
+
+export async function sendArticleToChannel(article: any) {
+  const siteUrl = 'https://sizning-saytingiz.com'; // Buni .env ga chiqarsa ham bo'ladi
+  const articleUrl = `${siteUrl}/articles/${article.slug}`;
+
+  const caption = `<b>${article.title}</b>\n\n${article.excerpt}`;
+
+  const options = {
+    parse_mode: 'HTML',
+    caption: caption,
+    reply_markup: {
+      inline_keyboard: [
+        [{ text: "Batafsil o'qish", url: articleUrl }]
+      ]
+    }
+  };
+
+  try {
+    await bot.sendPhoto(channelId, article.imageUrl, options);
+    console.log(`✅ Article "${article.title}" sent to Telegram channel.`);
+  } catch (error) {
+    console.error("Error sending article to Telegram:", error);
+  }
+}
+Nashr Etish Jarayoniga Integratsiya:
+
+server/routes.ts faylida maqolani nashr etadigan (PATCH /api/articles/:id/publish) endpoint'ni topamiz.
+
+Maqola bazada muvaffaqiyatli published holatiga o'tkazilgandan so'ng, sendArticleToChannel funksiyasini chaqiramiz.
+
+Natija: Endi har bir nashr etilgan maqola darhol Telegram kanalingizda chiroyli rasm, sarlavha, qisqa matn va saytga qaytaruvchi havola bilan paydo bo'ladi.
+
+2-BOSQICH: AUDITORIYANI O'STIRISH (FRONTEND INTEGRATSIYASI)
+Maqsad: Saytga kirgan foydalanuvchilarni bezovta qilmaydigan, lekin samarali tarzda Telegram kanaliga obuna bo'lishga undaydigan popup (modal oyna) yaratish.
+
+Amaliy Qadamlar:
+
+Yangi Komponent Yaratish (telegram-subscribe-modal.tsx):
+
+client/src/components/ papkasida yangi komponent yaratamiz. U Shadcn UI'ning Dialog komponenti asosida quriladi.
+
+Ichida jozibador sarlavha ("Eng so'nggi yangiliklardan birinchi bo'lib xabardor bo'ling!"), qisqa tushuntirish va kanalga to'g'ridan-to'g'ri olib boradigan katta "Obuna bo'lish" tugmasi bo'ladi.
+
+Popup'ni Boshqarish Logikasini Yaratish (use-subscribe-popup.ts):
+
+Bu popup foydalanuvchini bezovta qilmasligi kerak. Shuning uchun uning qachon paydo bo'lishini boshqaradigan maxsus hook yaratamiz.
+
+Triggerlar: Popup quyidagi hollarda paydo bo'lishi mumkin:
+
+Foydalanuvchi sahifani 50% pastga aylantirganda.
+
+Foydalanuvchi saytda 15 soniyadan ko'proq vaqt o'tkazganda.
+
+Xotira (localStorage): Eng muhimi, foydalanuvchi popup'ni bir marta yopgandan so'ng, u bir kun (yoki bir hafta) davomida qayta ko'rsatilmaydi.
+
+Saytga Integratsiya:
+
+Yaratilgan modal komponent va uni boshqaruvchi hook'ni asosiy layout fayliga (App.tsx yoki admin-layout.tsx) qo'shamiz.
+
+Natija: Saytingiz endi shunchaki passiv kontent manbai emas, balki o'zining doimiy auditoriyasini faol ravishda shakllantiradigan marketing vositasiga aylanadi.
+
+STRATEGIK TANLOV
+Bu ikki bosqich bir-birini to'ldiradi. Mening tavsiyam, ishni 1-Bosqich: Backend Integratsiyasidan boshlash. Avval kontentni tarqatish mexanizmini qurib olaylik, keyin esa unga odamlarni jalb qilish ustida ishlaymiz.
+
+Shu ikki bosqichli rejaga rozimisiz? Ishni Telegram botini sozlash va backend integratsiyasidan boshlaymizmi?

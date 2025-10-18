@@ -12,6 +12,7 @@ import {
   generateArticlesFromAllSources
 } from "./article-generator";
 import { RSS_FEEDS } from "./rss";
+import { sendArticleToChannel } from "./services/telegram-service";
 import { z } from "zod";
 import passport, { requireAuth } from "./auth";
 import bcrypt from "bcryptjs";
@@ -167,6 +168,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         message: `Maqola nashr etildi: ${article.title}`,
         metadata: JSON.stringify({ articleId: article.id, publishedAt: article.publishedAt }),
       });
+
+      // Send article to Telegram channel
+      const telegramSent = await sendArticleToChannel(article);
+      if (telegramSent) {
+        await storage.createLog({
+          action: "telegram_notification_sent",
+          status: "success",
+          message: `Telegram kanaliga yuborildi: ${article.title}`,
+          metadata: JSON.stringify({ articleId: article.id }),
+        });
+      }
 
       res.json(article);
     } catch (error) {
@@ -376,6 +388,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error in manual RSS generation:", error);
       res.status(500).json({ error: "Failed to generate RSS articles" });
+    }
+  });
+
+  app.post("/api/telegram/test", requireAuth, async (req, res) => {
+    try {
+      const { testTelegramConnection } = await import("./services/telegram-service");
+      const success = await testTelegramConnection();
+      if (success) {
+        res.json({ success: true, message: "Telegram test message sent successfully" });
+      } else {
+        res.status(503).json({ 
+          success: false, 
+          error: "Telegram not configured or test failed. Check TELEGRAM_BOT_TOKEN and TELEGRAM_CHANNEL_ID." 
+        });
+      }
+    } catch (error) {
+      console.error("Error testing Telegram:", error);
+      res.status(500).json({ error: "Failed to test Telegram connection" });
     }
   });
 
