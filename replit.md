@@ -14,9 +14,10 @@ Real News is an automated news content platform for Uzbekistan that uses AI to d
 ## Architecture
 
 ### Data Models
-1. **Articles** - Generated news content with title, content, excerpt, category, status
-2. **Trends** - Detected trending topics with keyword, score, category, processed status
-3. **System Logs** - Activity tracking for automation monitoring
+1. **Users** - Admin authentication with username and hashed password
+2. **Articles** - Generated news content with title, content, excerpt, category, status
+3. **Trends** - Detected trending topics with keyword, score, category, processed status
+4. **System Logs** - Activity tracking for automation monitoring
 
 ### Key Features
 1. **Public Site**
@@ -26,12 +27,16 @@ Real News is an automated news content platform for Uzbekistan that uses AI to d
    - Individual article detail pages
    - Responsive design with dark/light mode
 
-2. **Admin Dashboard**
+2. **Admin Dashboard** (Secured with Authentication)
+   - Session-based authentication with bcrypt password hashing
+   - Protected routes requiring login
    - System statistics (published, drafts, scheduled, active trends)
    - Recent activity timeline
    - Active trends monitoring
    - Articles management with delete functionality
+   - **Drafts Management** - Edit and publish draft articles
    - Manual trend fetching and article generation
+   - User display and logout functionality
 
 3. **Automation System**
    - Trend detection every 2 hours
@@ -41,13 +46,24 @@ Real News is an automated news content platform for Uzbekistan that uses AI to d
    - System activity logging
 
 ### API Endpoints
+
+**Public Endpoints:**
 - `GET /api/articles` - Get all articles
 - `GET /api/articles/:id` - Get single article
-- `DELETE /api/articles/:id` - Delete article
 - `GET /api/trends` - Get all trends
+- `GET /api/logs` - Get system logs
+
+**Authentication Endpoints:**
+- `POST /api/auth/register` - Register first admin (only works when no users exist)
+- `POST /api/auth/login` - Login with username/password
+- `POST /api/auth/logout` - Logout current user
+- `GET /api/auth/me` - Get current user info
+
+**Protected Endpoints (Require Authentication):**
+- `PATCH /api/articles/:id` - Update article (edit & publish drafts)
+- `DELETE /api/articles/:id` - Delete article
 - `POST /api/trends/fetch` - Manually fetch trends
 - `POST /api/trends/generate` - Generate article from trend
-- `GET /api/logs` - Get system logs
 
 ### Scheduled Tasks
 1. **Trend Fetching** - Every 2 hours
