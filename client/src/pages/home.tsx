@@ -5,6 +5,7 @@ import { Clock, Flame } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { format } from "date-fns";
+import { Helmet } from "react-helmet-async";
 
 export default function Home() {
   const { data: articles = [], isLoading: articlesLoading } = useQuery<Article[]>({
@@ -20,8 +21,30 @@ export default function Home() {
   const latestArticles = publishedArticles.slice(1);
   const trendingTopics = trends.filter(t => !t.isProcessed).slice(0, 8);
 
+  const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+  const pageTitle = "Real News - O'zbekiston yangiliklari | AI yordamida ishlaydigan avtomatik yangiliklar";
+  const pageDescription = "O'zbekiston va dunyodagi so'nggi yangiliklar. AI texnologiyasi yordamida tahlil qilingan dolzarb maqolalar. Siyosat, iqtisod, sport, texnologiya va boshqa turkumlardagi yangiliklar.";
+  const ogImage = mainArticle?.imageUrl || `${baseUrl}/og-default.jpg`;
+
   return (
     <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>{pageTitle}</title>
+        <meta name="description" content={pageDescription} />
+        
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content={pageTitle} />
+        <meta property="og:description" content={pageDescription} />
+        <meta property="og:image" content={ogImage} />
+        <meta property="og:url" content={baseUrl} />
+        <meta property="og:site_name" content="Real News" />
+        
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={pageTitle} />
+        <meta name="twitter:description" content={pageDescription} />
+        <meta name="twitter:image" content={ogImage} />
+      </Helmet>
+
       {/* Header */}
       <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto">

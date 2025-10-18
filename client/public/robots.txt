@@ -1,0 +1,9 @@
+# Real News - Robots.txt
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /login
+Disallow: /register
+
+# Sitemap
+Sitemap: https://9254609a-6719-4388-a8e3-68a24e610995-00-1cm2gn54jg3my.sisko.replit.dev/api/sitemap.xml

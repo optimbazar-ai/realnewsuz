@@ -331,6 +331,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
+  app.get("/api/sitemap.xml", async (req, res) => {
+    try {
+      const articles = await storage.getAllArticles();
+      const publishedArticles = articles.filter(a => a.status === "published");
+      
+      const baseUrl = process.env.REPLIT_DEV_DOMAIN 
+        ? `https://${process.env.REPLIT_DEV_DOMAIN}` 
+        : "http://localhost:5000";
+      
+      let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
+      xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n';
+      
+      xml += `  <url>\n`;
+      xml += `    <loc>${baseUrl}/</loc>\n`;
+      xml += `    <changefreq>daily</changefreq>\n`;
+      xml += `    <priority>1.0</priority>\n`;
+      xml += `  </url>\n`;
+      
+      for (const article of publishedArticles) {
+        const articleUrl = `${baseUrl}/article/${article.id}`;
+        const lastmod = article.updatedAt 
+          ? new Date(article.updatedAt).toISOString().split('T')[0]
+          : new Date().toISOString().split('T')[0];
+        
+        xml += `  <url>\n`;
+        xml += `    <loc>${articleUrl}</loc>\n`;
+        xml += `    <lastmod>${lastmod}</lastmod>\n`;
+        xml += `    <changefreq>weekly</changefreq>\n`;
+        xml += `    <priority>0.8</priority>\n`;
+        xml += `  </url>\n`;
+      }
+      
+      xml += '</urlset>';
+      
+      res.header('Content-Type', 'application/xml');
+      res.send(xml);
+    } catch (error) {
+      console.error("Error generating sitemap:", error);
+      res.status(500).json({ error: "Failed to generate sitemap" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
