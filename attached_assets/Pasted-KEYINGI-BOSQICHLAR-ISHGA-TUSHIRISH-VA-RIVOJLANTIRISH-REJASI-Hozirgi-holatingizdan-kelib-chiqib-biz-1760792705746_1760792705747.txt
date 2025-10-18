@@ -1,0 +1,81 @@
+KEYINGI BOSQICHLAR: ISHGA TUSHIRISH VA RIVOJLANTIRISH REJASI
+Hozirgi holatingizdan kelib chiqib, biz endi kod yozishdan ko'ra ko'proq sinov, tahlil va strategiya bilan shug'ullanamiz.
+
+🎯 1-BOSQICH: Chuqurlashtirilgan Testlash va Sifat Nazorati (QA - Quality Assurance)
+
+Maqsad: Foydalanuvchilar duch kelishidan oldin barcha yashirin xatoliklarni topish va tizimning barqarorligini to'liq tekshirish.
+
+1.1. Funksional Testlash:
+
+Admin panel: Har bir filtr, qidiruv, o'chirish va tahrirlash tugmasi to'g'ri ishlayaptimi?
+
+Ommaviy sayt: Barcha havolalar (linklar) ishlayaptimi? Sahifalar to'g'ri ochilyaptimi? Ulashish tugmalari ishlayaptimi?
+
+1.2. Avtomatlashtirish Stress-Testi:
+
+Xatoliklarni simulyatsiya qilish: node-cron vazifasi ishlayotgan paytda Gemini yoki Unsplash API'dan ataylab xato javob qaytaring. Tizim bu xatoni system_logs jadvaliga to'g'ri yozib, ishni to'xtatib qo'ymayaptimi? Siz aytgan "40 soniya kutib qayta urinish" mexanizmi ishlayaptimi?
+
+Cheklovlarni sinash: Bir vaqtning o'zida bir nechta trenddan maqola yaratish buyrug'ini bering. Tizim navbatni to'g'ri boshqara oladimi?
+
+1.3. Cross-Browser va Responsivlik Testi:
+
+Sayt Chrome, Firefox, Safari brauzerlarining so'nggi versiyalarida to'g'ri ko'rinish berayaptimi?
+
+Mobil telefon (kichik ekran), planshet va katta desktop ekranlarida dizayn "buzilib" qolmayaptimi?
+
+🚀 2-BOSQICH: Optimallashtirish (Performance Tuning)
+
+Maqsad: Saytning maksimal darajada tez ishlashini va resurslardan samarali foydalanishini ta'minlash.
+
+2.1. Ma'lumotlar Bazasi Optimizatsiyasi:
+
+Drizzle ORM orqali articles jadvalida tez-tez so'rov beriladigan ustunlarga (status, category) indekslar qo'yilganmi? Bu katta hajmdagi ma'lumotlar bilan ishlaganda qidiruvni keskin tezlashtiradi.
+
+2.2. Frontend Tezkorligi:
+
+Google Lighthouse yordamida saytni tahlil qiling. Rasmlar optimallashtirilganmi? Keraksiz JavaScript kodlari yuklanmayaptimi?
+
+2.3. API Keshlashtirish:
+
+O'zgarmaydigan ma'lumotlar (masalan, kategoriyalar ro'yxati) uchun API darajasida oddiy kesh mexanizmini qo'shish mumkin. Bu bazaga tushadigan yuklamani kamaytiradi.
+
+✅ 3-BOSQICH: "Uchirish Oldi" Tayyorgarlik (Pre-Launch Checklist)
+
+Maqsad: Loyihani ommaga taqdim etishdan oldin barcha texnik va marketing elementlari tayyorligiga ishonch hosil qilish.
+
+3.1. SEO (Search Engine Optimization) Asoslari:
+
+Har bir sahifa uchun dinamik meta-title va meta-description yaratilganmi?
+
+robots.txt va sitemap.xml fayllari yaratilib, qidiruv tizimlari uchun sozlandimi?
+
+3.2. Analitika va Monitoring:
+
+Saytga Google Analytics yoki Vercel Analytics kabi tahlil vositalari ulanganmi? Bu foydalanuvchilar oqimini kuzatish uchun kerak.
+
+Xatoliklarni real vaqtda kuzatish uchun Sentry yoki LogRocket kabi tizimlarni ulashni o'ylab ko'ring.
+
+3.3. Xavfsizlik va Zaxira Nusxalash:
+
+Barcha .env o'zgaruvchilari production muhitida to'g'ri o'rnatilganmi?
+
+NeonDB'da ma'lumotlar bazasining avtomatik zaxira nusxalari (backups) sozlanadimi?
+
+🌐 4-BOSQICH: Deployment va Monitoring
+
+Maqsad: Loyihani real serverga joylashtirish va uning barqaror ishlashini kuzatib borish.
+
+4.1. Deployment:
+
+Replit yaxshi, lekin production uchun Vercel (Frontend uchun) va Railway yoki Render (Backend va PostgreSQL uchun) kabi platformalarni ko'rib chiqing. Ular ishonchliroq va yaxshiroq monitoring vositalarini taklif qiladi.
+
+4.2. Post-Launch Monitoring:
+
+Loyihani ishga tushirgandan keyingi ilk 24-48 soat davomida server loglarini, analitikani va avtomatlashtirish jurnallarini diqqat bilan kuzatib boring.
+
+Xulosa va Taklif
+Siz deyarli marraga yetib keldingiz. Hozirgi vazifangiz – qurilgan "imorat"ni har tomonlama sinovdan o'tkazib, uni mustahkamlash va ommaga tayyorlash.
+
+Taklif: Keling, 1-BOSQICHdan boshlaymiz. Men sizga aniq Testlash Rejasi (Test Plan) hujjatini tayyorlab berishim mumkin. Bu hujjatda qaysi funksiyalarni, qanday ketma-ketlikda va qanday usullar bilan tekshirish kerakligi yozilgan bo'ladi.
+
+Birinchi navbatda Avtomatlashtirish tizimining stress-testi uchun ssenariylar tayyorlaymizmi?
