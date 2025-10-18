@@ -1,0 +1,122 @@
+A'lo, 2-qadamga o'tamiz! Bu bosqichda biz loyihamizning "skeletini" — ma'lumotlar bazasi arxitekturasini yaratamiz. Ma'lumotlar qanday, qaysi tartibda va qanday bog'liqlikda saqlanishini aniq belgilab olamiz.
+
+Bu qadam uchun bizga zamonaviy vosita — Prisma ORM yordam beradi. Prisma bizga oddiy sintaksis yordamida ma'lumotlar bazasi modellarini (schema) tasvirlash va keyinchalik bu schema asosida avtomatik ravishda bazada jadvallar yaratish imkonini beradi.
+
+📦 2-QADAM: Ma'lumotlar Bazasi Arxitekturasini Loyihalash
+Maqsad: Loyihaning barcha ma'lumotlari uchun aniq, kengaytiriladigan va ishonchli tuzilmani yaratish.
+
+Topshiriqlar:
+
+Prisma ORM'ni loyihaga qo'shish:
+
+Backend papkasida (real-news-backend) terminalda quyidagi buyruqlarni bajaring:
+
+Bash
+
+# Prisma'ni o'rnatish
+npm install prisma --save-dev
+
+# Prisma loyihasini yaratish (PostgreSQL uchun)
+npx prisma init --datasource-provider postgresql
+Bu buyruqdan so'ng loyihangizda prisma nomli yangi papka va uning ichida schema.prisma fayli hamda .env faylingizga DATABASE_URL o'zgaruvchisi qo'shiladi.
+
+.env faylini sozlash:
+
+.env faylini ochib, PostgreSQL ma'lumotlar bazangizga ulanish uchun DATABASE_URL manzilini to'g'ri kiriting. Masalan:
+
+Фрагмент кода
+
+# .env fayli
+DATABASE_URL="postgresql://USERNAME:PASSWORD@HOST:PORT/DATABASE_NAME"
+schema.prisma faylini to'ldirish:
+
+prisma/schema.prisma faylini oching va uning ichidagi barcha kodni o'chirib, o'rniga quyidagi, bizning loyihamiz uchun maxsus tayyorlangan schema'ni joylashtiring:
+
+Фрагмент кода
+
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// 1. Yangilik Maqolasi Modeli
+// Gemini tomonidan yaratilgan har bir yangilik shu yerda saqlanadi.
+model NewsArticle {
+  id          Int       @id @default(autoincrement())
+  title       String    @unique // Maqola sarlavhasi (unikal bo'lishi shart)
+  slug        String    @unique // URL uchun qulay formatdagi sarlavha
+  content     String    @db.Text // Maqolaning to'liq matni
+  imageUrl    String    // Unsplash'dan olingan rasm manzili
+  sourceTopic String    // Qaysi trend asosida yaratilgani
+  status      Status    @default(DRAFT) // Holati: DRAFT, PUBLISHED, ERROR
+  publishedAt DateTime? // Chop etilgan aniq vaqti
+  createdAt   DateTime  @default(now()) // Yaratilgan vaqti
+  updatedAt   DateTime  @updatedAt // Oxirgi o'zgartirilgan vaqti
+
+  // Bog'liqliklar
+  category   Category? @relation(fields: [categoryId], references: [id])
+  categoryId Int?
+  tags       Tag[]     // Maqola bir nechta teglarga ega bo'lishi mumkin (many-to-many)
+}
+
+// 2. Kategoriya Modeli
+// Yangiliklarni guruhlash uchun (masalan, "Sport", "Siyosat")
+model Category {
+  id       Int      @id @default(autoincrement())
+  name     String   @unique
+  slug     String   @unique
+  articles NewsArticle[] // Bir kategoriya ko'plab maqolalarga ega bo'lishi mumkin
+}
+
+// 3. Teg Modeli
+// Maqolalarni kalit so'zlar orqali bog'lash uchun (masalan, "futbol", "AI")
+model Tag {
+  id       Int      @id @default(autoincrement())
+  name     String   @unique
+  slug     String   @unique
+  articles NewsArticle[] // Bir teg ko'plab maqolalarda ishlatilishi mumkin
+}
+
+// 4. Bajarilish Jurnali Modeli
+// Avtomatik skriptning har bir ishga tushishini yozib borish uchun
+model ExecutionLog {
+  id                Int       @id @default(autoincrement())
+  runAt             DateTime  @default(now()) // Ishga tushgan vaqti
+  status            LogStatus // Holati: SUCCESS yoki FAILED
+  articlesGenerated Int       @default(0) // Nechta maqola yaratilgani
+  errorMessage      String?   @db.Text // Agar xatolik bo'lsa, uning matni
+}
+
+// Maqola holatlari uchun Enum (qabul qiladigan qiymatlar ro'yxati)
+enum Status {
+  DRAFT
+  PUBLISHED
+  ERROR
+}
+
+// Jurnal holatlari uchun Enum
+enum LogStatus {
+  SUCCESS
+  FAILED
+}
+Ma'lumotlar bazasini yaratish (Migration):
+
+Endi biz yaratgan schema asosida PostgreSQL'da jadvallarni yaratishimiz kerak. Buning uchun terminalda quyidagi buyruqni bajaring:
+
+Bash
+
+# Schema asosida bazada o'zgarishlarni amalga oshirish (jadvallarni yaratish)
+npx prisma migrate dev --name "initial_migration"
+Bu buyruqdan so'ng, Prisma bazaga ulanadi va yuqorida biz belgilagan barcha jadvallar (NewsArticle, Category, Tag, ExecutionLog) va ular orasidagi bog'liqliklarni avtomatik ravishda yaratadi.
+
+Shuningdek, u loyihangizda Prisma Client ni generatsiya qiladi (npm install @prisma/client buyrug'ini o'zi ishga tushiradi). Bu bizga keyingi qadamlarda kod ichidan bazadagi jadvallar bilan osonlikcha ishlash imkonini beradi.
+
+Natija: Tabriklayman! Siz 2-QADAMni muvaffaqiyatli yakunladingiz. Endi bizda loyihaning barcha ma'lumotlarini ishonchli saqlashga tayyor, puxta o'ylangan ma'lumotlar bazasi mavjud.
+
+Endi esa eng qiziqarli qismiga o'tishimiz mumkin — 3-QADAM, ya'ni loyihaning "yuragi" bo'lgan avtomatik kontent yaratish servislarini qurish!
