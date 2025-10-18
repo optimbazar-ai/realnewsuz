@@ -54,8 +54,42 @@ export async function generateArticleFromTrendId(trendId: string): Promise<void>
       .map(a => a.photoId)
       .filter((id): id is string => id !== null);
 
-    // Search for related image from Unsplash (avoiding already used photos)
-    const photoData = await searchPhotoForArticle(trend.keyword, usedPhotoIds);
+    // Search for related image from Unsplash with retry mechanism
+    let photoData = null;
+    const unsplashMaxRetries = 2;
+    const unsplashRetryDelay = 15000; // 15 soniya
+
+    for (let attempt = 1; attempt <= unsplashMaxRetries; attempt++) {
+      try {
+        console.log(`🖼️ Attempt ${attempt}/${unsplashMaxRetries} to find image for: "${trend.keyword}"`);
+        photoData = await searchPhotoForArticle(trend.keyword, usedPhotoIds);
+        
+        if (photoData) {
+          console.log(`✅ Successfully found image on attempt ${attempt}`);
+          break;
+        } else {
+          // No image found - treat as failed attempt
+          console.warn(`❌ No image found on attempt ${attempt}`);
+          if (attempt < unsplashMaxRetries) {
+            console.log(`⏳ Retrying image search in ${unsplashRetryDelay / 1000} seconds...`);
+            await delay(unsplashRetryDelay);
+          } else {
+            console.warn(`⚠️ Could not fetch image for "${trend.keyword}" after ${unsplashMaxRetries} attempts. Proceeding without image.`);
+          }
+        }
+      } catch (error) {
+        console.error(`❌ Unsplash API error on attempt ${attempt}:`, error);
+        if (attempt < unsplashMaxRetries) {
+          console.log(`⏳ Retrying image search in ${unsplashRetryDelay / 1000} seconds...`);
+          await delay(unsplashRetryDelay);
+        } else {
+          console.warn(`⚠️ Could not fetch image for "${trend.keyword}" after ${unsplashMaxRetries} attempts. Proceeding without image.`);
+        }
+      }
+    }
+
+    // Determine article status based on whether image was found
+    const articleStatus = photoData ? "published" : "draft";
 
     // Create article
     const article = await storage.createArticle({
@@ -64,8 +98,8 @@ export async function generateArticleFromTrendId(trendId: string): Promise<void>
       excerpt: articleData.excerpt,
       category: trend.category || "Boshqa",
       trendKeyword: trend.keyword,
-      status: "published",
-      publishedAt: new Date(),
+      status: articleStatus,
+      publishedAt: photoData ? new Date() : null,
       imageUrl: photoData?.imageUrl || null,
       photographerName: photoData?.photographerName || null,
       photographerUrl: photoData?.photographerUrl || null,
@@ -76,11 +110,20 @@ export async function generateArticleFromTrendId(trendId: string): Promise<void>
     await storage.markTrendAsProcessed(trendId);
 
     // Log success
+    const logMessage = photoData 
+      ? `Maqola yaratildi: ${articleData.title}`
+      : `Maqola yaratildi (draft, rasmSIZ): ${articleData.title}`;
+    
     await storage.createLog({
       action: "article_generated",
       status: "success",
-      message: `Maqola yaratildi: ${articleData.title}`,
-      metadata: JSON.stringify({ articleId: article.id, trendId }),
+      message: logMessage,
+      metadata: JSON.stringify({ 
+        articleId: article.id, 
+        trendId, 
+        hasImage: !!photoData,
+        status: articleStatus 
+      }),
     });
 
   } catch (error) {

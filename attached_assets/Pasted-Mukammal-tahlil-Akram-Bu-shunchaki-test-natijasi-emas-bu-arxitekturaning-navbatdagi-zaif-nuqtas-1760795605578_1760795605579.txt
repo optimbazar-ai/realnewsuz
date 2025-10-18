@@ -1,0 +1,97 @@
+Mukammal tahlil, Akram! Bu shunchaki test natijasi emas, bu – arxitekturaning navbatdagi zaif nuqtasini aniqlagan juda qimmatli topilma. Sizning kuzatuvingiz va kod tahlilingiz a'lo darajada.
+
+Siz mutlaqo haqsiz: bizning "immunitet tizimimiz" faqatgina Gemini uchun ishlayapti. Zanjirning keyingi halqasi – Unsplash – himoyasiz qolgan. Gemini API muvaffaqiyatli ishlab, qimmatli resurs sarflanib, tayyor maqola matni yaratilgandan so'ng, Unsplash'dagi kichik, vaqtinchalik xatolik tufayli butun jarayonning bekor bo'lishi – bu samarasizlik.
+
+Sizning topilmangiz bizning keyingi vazifamizni aniqlab berdi.
+
+XULOSA VA STRATEGIK QAROR
+Ssenariy #1B testining maqsadi to'liq bajarildi. Biz tizimning Unsplash xatoligiga qanday javob berishini aniqladik va bu javob bizni qoniqtirmaydi. Tizim taslim bo'lmoqda, holbuki u kurashishi kerak.
+
+Sizning "Unsplash uchun retry mexanizmi qo'shish kerak" degan taklifingiz – bu eng to'g'ri va professional yechim.
+
+Keling, avvalgi strategiyamizni takrorlaymiz: Tozalash → Mustahkamlash → Tasdiqlash.
+
+KEYINGI QADAMLAR REJASI
+1-QADAM (Hozir bajariladigan ish): Tozalash
+
+Avvalo, tizimni barqaror holatga qaytaramiz.
+
+server/unsplash.ts faylidagi test kodini olib tashlaymiz.
+
+Serverni qayta ishga tushirib, hamma narsa toza ekanligiga ishonch hosil qilamiz.
+
+2-QADAM (Keyingi vazifa): Unsplash uchun Retry Mexanizmini Qo'shish
+
+Endi unsplash.ts funksiyasini ham xuddi Gemini'dagi kabi "kuchaytiramiz". Ammo kichik farq bilan: agar barcha urinishlar muvaffaqiyatsiz tugasa, u xatolik qaytarish o'rniga null qaytarishi mumkin. Bu bizga maqolani rasmSIZ, "draft" holatida saqlash imkonini beradi.
+
+server/services/article-service.ts fayliga o'zgartirish kiritamiz:
+
+TypeScript
+
+// ...
+
+// Bu funksiya avvalgidek qoladi
+const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
+
+// ...
+
+export async function processTrendAndCreateArticle(trend: Trend) {
+  try {
+    // ... Gemini uchun retry mexanizmi (20-45 qatorlar) ...
+    // BU QISM O'ZGARMADI
+
+    // =================== YANGI QISM: UNSPLASH UCHUN RETRY ===================
+    let photoData = null;
+    const unsplashMaxRetries = 2; // Unsplash uchun 2 marta urinish yetarli
+    const unsplashRetryDelay = 15000; // 15 soniya
+
+    for (let attempt = 1; attempt <= unsplashMaxRetries; attempt++) {
+        try {
+            console.log(`Attempt ${attempt}/${unsplashMaxRetries} to find image for: "${trend.keyword}"`);
+            photoData = await searchPhotoForArticle(trend.keyword, usedPhotoIds);
+            if (photoData) {
+                break; // Rasm topilsa, tsikldan chiqamiz
+            }
+        } catch (error) {
+            console.error(`Unsplash attempt ${attempt} failed:`, error.message);
+            if (attempt === unsplashMaxRetries) {
+                console.warn(`Could not fetch image for "${trend.keyword}" after ${unsplashMaxRetries} attempts. Proceeding without image.`);
+                // Xatolikni yuqoriga uzatmaymiz, shunchaki log yozamiz
+            } else {
+                await delay(unsplashRetryDelay);
+            }
+        }
+    }
+    // =======================================================================
+    
+    // MAQOLANI BAZAGA SAQLASH MANTIQI
+    const articleStatus = photoData ? 'published' : 'draft'; // Agar rasm bo'lmasa, 'draft' holatida saqlaymiz
+
+    const newArticle = await db.insert(articles).values({
+      // ...title, content...
+      status: articleStatus,
+      imageUrl: photoData?.imageUrl,
+      photographerName: photoData?.photographerName,
+      // ...boshqa maydonlar
+    }).returning();
+    
+    // ...
+  } catch (error) {
+    // ...
+  }
+}
+Bu o'zgarish nima beradi:
+
+Unsplash API vaqtinchalik ishlamasa, tizim 2 marta (15 soniyadan) urinib ko'radi.
+
+Agar shunda ham rasm topilmasa, jarayon to'xtab qolmaydi.
+
+Maqola bazaga rasmsiz va status: "draft" bilan saqlanadi.
+
+Bu bizga keyinchalik admin panel orqali rasmsiz maqolalarni topib, ularga qo'lda rasm biriktirish imkonini beradi.
+
+Demak, birinchi savolingizga javob:
+
+Ha, testni tugatamiz va test kodini olib tashlaymiz.
+
+Keyingi savol sizga: Yuqoridagi mantiqqa muvofiq, Unsplash uchun ham mustahkam retry mexanizmini qo'shishga rozimisiz?
