@@ -2,7 +2,8 @@ import {
   LayoutDashboard, 
   FileText, 
   TrendingUp,
-  Sparkles
+  Sparkles,
+  FilePen
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import {
@@ -27,6 +28,11 @@ const menuItems = [
     title: "Maqolalar",
     url: "/admin/articles",
     icon: FileText,
+  },
+  {
+    title: "Qoralamalar",
+    url: "/admin/drafts",
+    icon: FilePen,
   },
   {
     title: "Trendlar",
