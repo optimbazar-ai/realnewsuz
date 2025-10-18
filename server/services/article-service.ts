@@ -1,5 +1,6 @@
 import { storage } from "../storage";
 import { generateArticleFromTrend } from "../gemini";
+import { searchPhotoForArticle } from "../unsplash";
 
 export async function generateArticleFromTrendId(trendId: string): Promise<void> {
   try {
@@ -16,6 +17,9 @@ export async function generateArticleFromTrendId(trendId: string): Promise<void>
     // Generate article using Gemini AI
     const articleData = await generateArticleFromTrend(trend.keyword, trend.category || undefined);
 
+    // Search for related image from Unsplash
+    const photoData = await searchPhotoForArticle(trend.keyword);
+
     // Create article
     const article = await storage.createArticle({
       title: articleData.title,
@@ -25,7 +29,10 @@ export async function generateArticleFromTrendId(trendId: string): Promise<void>
       trendKeyword: trend.keyword,
       status: "published",
       publishedAt: new Date(),
-      imageUrl: null, // Can integrate with Unsplash API later
+      imageUrl: photoData?.imageUrl || null,
+      photographerName: photoData?.photographerName || null,
+      photographerUrl: photoData?.photographerUrl || null,
+      photoId: photoData?.photoId || null,
     });
 
     // Mark trend as processed
