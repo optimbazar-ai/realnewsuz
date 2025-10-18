@@ -1,14 +1,8 @@
 // Reference: javascript_database blueprint
-import { Pool, neonConfig } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-serverless';
-import ws from "ws";
+import { drizzle } from 'drizzle-orm/node-postgres';
+import pkg from 'pg';
+const { Pool } = pkg;
 import * as schema from "@shared/schema";
-
-neonConfig.webSocketConstructor = ws;
-neonConfig.wsProxy = (host) => `${host}?sslmode=require`;
-neonConfig.useSecureWebSocket = false;
-neonConfig.pipelineTLS = false;
-neonConfig.pipelineConnect = false;
 
 if (!process.env.DATABASE_URL) {
   throw new Error(

@@ -117,12 +117,12 @@ export default function AdminArticles() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <Link href={`/article/${article.id}`}>
-                              <DropdownMenuItem data-testid={`button-view-${article.id}`}>
+                            <DropdownMenuItem asChild data-testid={`button-view-${article.id}`}>
+                              <Link href={`/article/${article.id}`}>
                                 <Eye className="mr-2 h-4 w-4" />
                                 Ko'rish
-                              </DropdownMenuItem>
-                            </Link>
+                              </Link>
+                            </DropdownMenuItem>
                             <DropdownMenuItem
                               className="text-destructive"
                               onClick={() => deleteMutation.mutate(article.id)}

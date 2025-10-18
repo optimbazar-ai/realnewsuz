@@ -27,23 +27,17 @@ export default function Home() {
       {/* Header */}
       <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
-          <Link href="/">
-            <a className="flex items-center space-x-2" data-testid="link-home">
-              <Sparkles className="h-6 w-6 text-primary" />
-              <span className="text-xl font-bold">Real News</span>
-            </a>
+          <Link href="/" className="flex items-center space-x-2" data-testid="link-home">
+            <Sparkles className="h-6 w-6 text-primary" />
+            <span className="text-xl font-bold">Real News</span>
           </Link>
           
           <nav className="hidden md:flex items-center space-x-6">
-            <Link href="/">
-              <a className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors" data-testid="link-nav-home">
-                Bosh sahifa
-              </a>
+            <Link href="/" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors" data-testid="link-nav-home">
+              Bosh sahifa
             </Link>
-            <Link href="/admin">
-              <a className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors" data-testid="link-nav-admin">
-                Admin
-              </a>
+            <Link href="/admin" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors" data-testid="link-nav-admin">
+              Admin
             </Link>
           </nav>
 

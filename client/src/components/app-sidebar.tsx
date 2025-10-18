@@ -41,11 +41,9 @@ export function AppSidebar() {
   return (
     <Sidebar>
       <SidebarHeader className="border-b border-sidebar-border p-4">
-        <Link href="/">
-          <a className="flex items-center space-x-2" data-testid="link-sidebar-home">
-            <Sparkles className="h-6 w-6 text-primary" />
-            <span className="text-lg font-bold">Real News</span>
-          </a>
+        <Link href="/" className="flex items-center space-x-2" data-testid="link-sidebar-home">
+          <Sparkles className="h-6 w-6 text-primary" />
+          <span className="text-lg font-bold">Real News</span>
         </Link>
       </SidebarHeader>
       <SidebarContent>
@@ -59,11 +57,9 @@ export function AppSidebar() {
                 return (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild isActive={isActive}>
-                      <Link href={item.url}>
-                        <a data-testid={`link-sidebar-${item.title.toLowerCase()}`}>
-                          <Icon />
-                          <span>{item.title}</span>
-                        </a>
+                      <Link href={item.url} data-testid={`link-sidebar-${item.title.toLowerCase()}`}>
+                        <Icon />
+                        <span>{item.title}</span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
