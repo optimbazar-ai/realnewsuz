@@ -20,7 +20,9 @@ Qoidalar:
 - Matn rasmiy, lekin o'qish uchun qulay bo'lishi kerak
 - Maqola kamida 300-500 so'zdan iborat bo'lishi kerak
 - Faktlarga asoslangan ma'lumot berish
-- Qiziqarli va dolzarb tarzda yozish`;
+- Qiziqarli va dolzarb tarzda yozish
+- MUHIM: Markdown belgilarini ishlatmang (**, __, ##, va boshqalar)
+- Oddiy matn formatida yozing, markdown yoki maxsus belgilarsiz`;
 
   const userPrompt = `Trend mavzusi: "${keyword}"
 ${category ? `Kategoriya: ${category}` : ''}
