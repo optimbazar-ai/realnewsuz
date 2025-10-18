@@ -15,7 +15,9 @@ Real News is an automated news content platform for Uzbekistan that uses AI to d
 
 ### Data Models
 1. **Users** - Admin authentication with username and hashed password
-2. **Articles** - Generated news content with title, content, excerpt, category, status
+2. **Articles** - Generated news content with title, content, excerpt, category, status, sourceType, sourceUrl
+   - **sourceType**: AI_TREND (Google Trends), LOCAL_RSS (Uzbek news), FOREIGN_RSS (international news)
+   - **sourceUrl**: Original article URL for RSS-based content
 3. **Trends** - Detected trending topics with keyword, score, category, processed status
 4. **System Logs** - Activity tracking for automation monitoring
 
@@ -64,6 +66,10 @@ Real News is an automated news content platform for Uzbekistan that uses AI to d
 - `DELETE /api/articles/:id` - Delete article
 - `POST /api/trends/fetch` - Manually fetch trends
 - `POST /api/trends/generate` - Generate article from trend
+- `POST /api/articles/generate/local-rss` - Generate article from local Uzbek RSS feed
+- `POST /api/articles/generate/foreign-rss` - Generate and translate article from foreign RSS feed
+- `POST /api/articles/generate/all` - Generate articles from all sources (AI + RSS)
+- `GET /api/rss/feeds` - Get list of available RSS feeds
 
 ### Scheduled Tasks
 1. **Trend Fetching** - Every 2 hours
@@ -138,6 +144,57 @@ Real News is an automated news content platform for Uzbekistan that uses AI to d
   - Sidebar with latest news and categories
   - Improved typography and readability
 - All pages now feature professional news website aesthetic with consistent red theming
+
+### Hybrid Content Model Implementation
+- **Implemented three-tier content generation system** to diversify content sources and improve platform value
+- **Type A (AI_TREND)**: Original AI-generated articles from Google Trends (existing functionality)
+  - Detects trending topics in Uzbekistan
+  - Generates unique, high-quality content in Uzbek
+  - Uses Unsplash for relevant imagery
+- **Type B (LOCAL_RSS)**: Rewritten articles from local Uzbek news sources
+  - Fetches content from Kun.uz, Daryo.uz, and other Uzbek RSS feeds
+  - AI rewrites content in unique style while preserving facts
+  - Maintains original source attribution via sourceUrl
+  - Uses Unsplash for imagery
+- **Type C (FOREIGN_RSS)**: Translated and rewritten articles from international sources
+  - Fetches content from BBC Sport, TechCrunch, ESPN, The Verge
+  - AI translates from English to Uzbek professionally
+  - Adapts content for Uzbek audience while preserving context
+  - Uses original article images when available, falls back to Unsplash
+  - Maintains source attribution for transparency
+- **Database Schema Enhancement**:
+  - Added `sourceType` column (AI_TREND, LOCAL_RSS, FOREIGN_RSS)
+  - Added `sourceUrl` column for original article attribution
+  - Enables content source tracking and analytics
+- **New RSS Service** (`server/rss.ts`):
+  - Parses RSS feeds using rss-parser library
+  - Extracts titles, content, images, and metadata
+  - Cleans HTML content for AI processing
+  - Supports custom fields for media and enclosures
+- **Enhanced Gemini AI Service** (`server/gemini.ts`):
+  - `rewriteLocalArticle()` - Rewrites Uzbek articles with unique phrasing
+  - `translateAndRewriteForeignArticle()` - Translates and adapts foreign content
+  - Maintains original meaning while ensuring content uniqueness
+- **Article Generator Orchestration** (`server/article-generator.ts`):
+  - `generateArticleFromLocalRSS()` - Processes local RSS feeds
+  - `generateArticleFromForeignRSS()` - Processes foreign RSS feeds
+  - `generateArticlesFromAllSources()` - Generates all three types in one call
+  - Intelligent photo ID tracking to avoid duplicate images
+  - Marks trends as processed to prevent reuse
+- **New Admin API Endpoints**:
+  - `POST /api/articles/generate/local-rss` - Generate from local RSS
+  - `POST /api/articles/generate/foreign-rss` - Generate from foreign RSS
+  - `POST /api/articles/generate/all` - Generate all types at once
+  - `GET /api/rss/feeds` - List available RSS feeds
+- **RSS Feed Sources**:
+  - Local: Kun.uz, Daryo.uz, Gazeta.uz
+  - Foreign: BBC Sport, ESPN Football, TechCrunch, The Verge
+- **Benefits**:
+  - Diversified content sources reduce dependency on single method
+  - Maintains content freshness with real-time news from RSS feeds
+  - Provides both local and international perspective
+  - Ensures all content is unique and optimized for Uzbek audience
+  - Transparent source attribution builds trust
 
 ## User Preferences
 - Uzbek language for all generated content
