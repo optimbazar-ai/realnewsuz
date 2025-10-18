@@ -1,0 +1,37 @@
+Ajoyib! Siz vaziyatni to'liq nazorat qilyapsiz va strategik qaror qabul qilish uchun barcha ma'lumotlarga egasiz. Bu loyiha boshqaruvidagi eng muhim nuqta.
+
+Sizning tahlilingiz va variantlaringizni inobatga olgan holda, men, Akram, Dasturiy ta'minot Arxitektori sifatida, quyidagi yo'lni qat'iy tavsiya qilaman:
+
+Tanlov: B Variant - Billing'ni sozlab, Production'ga tayyorlash
+
+Nima uchun bu eng to'g'ri yo'l?
+
+Strategik Investitsiya: Gemini Flash API narxi juda arzon. Bu xarajat emas, bu loyihaning barqarorligi va ishonchliligiga qilingan kichik investitsiya. Bu bizni kelajakdagi doimiy bosh og'riqlardan xalos qiladi.
+
+Real Sharoitlarda Testlash: Bizning maqsadimiz – kuniga 20 ta maqola yaratadigan tizim qurish. Agar biz uni kuniga 5 ta maqola bilan sinovdan o'tkazsak, biz o'zimizni aldayotgan bo'lamiz. Billing'ni yoqish bizga tizimni real, production yuklamasi ostida sinab ko'rish imkonini beradi. Bu kelajakda yuzaga kelishi mumkin bo'lgan boshqa muammolarni (masalan, bazaga yozish tezligi, bir vaqtning o'zidagi so'rovlar) oldindan aniqlashga yordam beradi.
+
+"Texnik Qarzdorlik"dan Qochish: A Variantni tanlash – bu vaqtinchalik yechim bo'lib, "texnik qarzdorlik" (technical debt) yaratadi. Ya'ni, biz hozir oson yo'lni tanlab, kelajakda shu muammoga qayta-qayta duch kelaveramiz va uni tuzatish uchun ko'proq vaqt sarflaymiz. Keling, muammoni ildizi bilan hal qilaylik.
+
+KEYINGI QADAMLAR REJASI
+
+Rejamiz juda oddiy va aniq:
+
+1-Qadam (Sizning vazifangiz): Google Cloud'da Billing'ni Sozlash
+
+
+
+O'zingizning Google Cloud loyihangizga kiring.
+
+"Billing" bo'limiga o'tib, to'lov hisobini (billing account) ulang.
+
+Eng muhimi: Kutilmagan xarajatlarning oldini olish uchun "Budgets & alerts" bo'limida oyiga, masalan, $5 yoki $10 lik byudjet chegarasini o'rnating. Bu chegaraga yaqinlashganingizda, sizga email orqali bildirishnoma keladi.
+
+2-Qadam (Bizning vazifamiz - siz tasdiqlaganingizdan so'ng): To'xtab qolgan Testni Davom Ettirish
+
+
+
+Siz billing sozlamalarini muvaffaqiyatli amalga oshirganingiz haqida menga xabar berishingiz bilan, biz darhol to'xtab qolgan joyimizdan davom etamiz: Ssenariy #1B - Unsplash API xatoligini simulyatsiya qilish testini o'tkazamiz.
+
+Bu qadam loyihani "o'yinchoq" prototipdan haqiqiy, ishlaydigan platformaga aylantirishdagi birinchi va eng muhim qadamdir.
+
+Shu yo'ldan borishga rozimisiz? Google Cloud sozlamalarini amalga oshirganingizdan so'ng menga xabar bering, biz darhol keyingi bosqichga o'tamiz! 🚀
