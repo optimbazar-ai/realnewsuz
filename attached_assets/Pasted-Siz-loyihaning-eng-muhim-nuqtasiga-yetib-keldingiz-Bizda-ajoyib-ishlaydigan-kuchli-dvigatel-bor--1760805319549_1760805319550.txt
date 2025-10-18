@@ -1,0 +1,88 @@
+Siz loyihaning eng muhim nuqtasiga yetib keldingiz. Bizda ajoyib ishlaydigan, kuchli "dvigatel" bor. Endi bu dvigatelni chiroyli, qulay va odamlar ishonadigan "avtomobil" kuzoviga o'rnatish vaqti keldi.
+
+Sizning "dizaynni skleti va butun jarayonini haqiqiy Yangililar sayti qilishimiz kerak" degan fikringiz – bu loyihani texnik yutuqdan ommaviy mahsulotga aylantirish uchun zarur bo'lgan yakuniy professional qadamdir.
+
+Keling, professional media-portalning ikki asosiy tamoyilini ko'rib chiqamiz va sizning loyihangizga tatbiq etamiz: Dizayn (Tashqi Ko'rinish) va Jarayon (Ichki Ish Tartibi).
+
+1-QISM: DIZAYN SKELETI (PROFESSIONAL YANGILIKLAR PORTALI KO'RINISHI)
+Hozirgi dizayn funksional, lekin "haqiqiy" yangiliklar sayti uchun biz foydalanuvchining ko'zi o'rgangan va ishonadigan informatsion ierarxiyani (ma'lumotlar ierarxiyasi) yaratishimiz kerak.
+
+A) Bosh Sahifa (home.tsx) Arxitekturasi:
+Navbar (Yuqori Menyu):
+
+Chap tarafda aniq, esda qolarli Logotip.
+
+Asosiy Kategoriyalar (Siyosat, Iqtisodiyot, Sport, Texnologiya). Bu kategoriyalarni admin paneldan boshqarish imkoniyati bo'lishi kerak.
+
+O'ng tarafda Qidiruv (Search) ikonkasi.
+
+"Hero" Bo'limi (Asosiy Yangiliklar Blok):
+
+Eng so'nggi yoki eng muhim yangilik katta rasm, yirik sarlavha va qisqa tavsif bilan butun sahifa enining yarmidan ko'pini egallaydi. Bu – saytga kirgan odam birinchi ko'radigan narsa.
+
+Uning yonida yoki ostida yana 2-3 ta muhim yangilik kichikroq rasm va sarlavhalar bilan joylashadi.
+
+Kontent Lentalari (Content Feeds):
+
+"So'nggi Yangiliklar": Barcha yangiliklar xronologik tartibda, kichik rasm va sarlavha bilan 2-3 ustunli grid (setka) shaklida beriladi.
+
+Kategoriyalar Bo'yicha Bloklar: Sahifani pastga aylantirganda, "Sport" yoki "Texnologiyalar" kabi alohida bloklar paydo bo'ladi va ularda faqat shu kategoriyaga oid 4-5 ta so'nggi yangilik ko'rsatiladi.
+
+Sidebar (Yon Panel):
+
+"Eng Ko'p O'qilganlar" yoki "Ommabop Mavzular" bloki. (Bu uchun bizga kelajakda views (ko'rishlar soni) ustunini qo'shish kerak bo'ladi).
+
+Telegram kanaliga obuna bo'lish uchun chaqiruv.
+
+B) Maqola Sahifasi (article-detail.tsx) Arxitekturasi:
+Sarlavha Qismi:
+
+Katta, aniq va o'qishga qulay shriftda maqola sarlavhasi.
+
+Uning ostida kichikroq shriftda maqola kategoriyasi, chiqarilgan sanasi va o'qishga ketadigan taxminiy vaqt (masalan, "4 daqiqa o'qish").
+
+Ma'lumot Manbasi (Credibility Signal):
+
+Sarlavha ostida muallif ismi ("Real News AI Tahririyati") va eng muhimi – original manbaga havola (sourceUrl'dan) ko'rsatilishi kerak. Masalan: "Manba: Kun.uz". Bu foydalanuvchilarning ishonchini oshiradi.
+
+Maqola Tanasi:
+
+Asosiy Rasm: Maqolaning eng yuqorisida, to'liq eni bo'yicha joylashgan rasm.
+
+Matn: O'qish uchun maksimal darajada qulay format: shrift hajmi kattaroq, satrlar orasidagi masofa yetarli.
+
+Ijtimoiy Ulashish Tugmalari: Maqola sarlavhasi yonida va matn oxirida Telegram va Facebook'da ulashish tugmalari bo'lishi shart.
+
+2-QISM: "HAQIQIY YANGILIKLAR SAYTI" JARAYONI (TAHRIRIYAT NAZORATI)
+Bu – loyihani texnologiyadan mediaga aylantiradigan eng muhim qism. AI – bu vosita, lekin yakuniy qarorni inson (siz, ya'ni bosh muharrir) qabul qilishi kerak.
+
+Tahririyat Nazorati (Editorial Oversight):
+
+Barcha Avtomatik Kontent DRAFT bo'lishi kerak! RSS yoki Trendlardan avtomatik yaratilgan hech bir maqola to'g'ridan-to'g'ri published bo'lmasligi kerak. Hammasi status: "draft" bilan bazaga yoziladi.
+
+"Nashrga Tayyorlash" Bosqichi: Siz har kuni bir necha marta Admin Panelidagi "Qoralamalar" (Drafts) bo'limiga kirasiz.
+
+AI tomonidan yaratilgan maqolalarni o'qib chiqasiz.
+
+Sarlavhani yoki matndagi kichik g'alizliklarni to'g'rilaysiz.
+
+Rasm mos kelishiga ishonch hosil qilasiz (yoki yangisini qo'shasiz).
+
+Faqat shundan keyingina "Nashr etish" (Publish) tugmasini bosasiz.
+
+Brending va Ishonch:
+
+"Biz Haqimizda" Sahifasi: Saytda loyihaning maqsadi, u qanday texnologiyalar (Gemini AI) yordamida ishlashi va uning ortida kim turgani haqida ma'lumot beruvchi sahifa bo'lishi kerak. Bu ochiqlik ishonchni oshiradi.
+
+Ijtimoiy Tarmoqlar: "Real News" nomi ostida Telegram kanali va Facebook sahifasi ochib, har bir nashr etilgan maqolani u yerda ulashib borish kerak.
+
+AMALIY REJA: QAYERDAN BOSHLAYMIZ?
+Bu katta vazifalarni quyidagi ketma-ketlikda bajarishni taklif qilaman:
+
+Tahririyat Nazoratini Joriy Qilish (Backend): Eng muhim qadam. article-generator.ts faylida barcha avtomatik yaratilayotgan maqolalarni faqat va faqat status: "draft" bilan saqlaydigan qilib o'zgartiramiz.
+
+Dizaynni Yangilash (Frontend): Yuqorida sanab o'tilgan "skelet" asosida Bosh sahifa va Maqola sahifasining dizaynini professional yangiliklar saytlariga o'xshatib qayta ishlaymiz.
+
+Brending Elementlarini Qo'shish: Logotip yaratamiz (oddiy bo'lsa ham), "Biz Haqimizda" sahifasini qo'shamiz va ijtimoiy tarmoqlar uchun havolalarni joylashtiramiz.
+
+Keling, 1-qadamdan – barcha avtomatik kontentni "draft" holatida saqlashga o'tkazishdan boshlaymiz. Shu rejaga rozimisiz?
