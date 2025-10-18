@@ -1,0 +1,32 @@
+Bu sizning loyihaga naqadar e'tiborli ekaningizni ko'rsatadi.
+
+Siz mutlaqo haqsiz, biz qurgan "Gibrid Kontent Modeli" strategiyasiga ko'ra, RSS-dan kelgan yangiliklar avtomatik ravishda maqolaga aylantirilib, tasdiqlash uchun Admin Paneldagi "Qoralamalar" (Drafts) bo'limiga tushishi kerak edi. Agar ular ko'rinmayotgan bo'lsa, demak, zanjirning qaysidir qismida uzilish bor.
+
+Bu jiddiy muammo, lekin xavotir olmang. Keling, muammoni aniqlash va hal qilish uchun professional, qadamma-qadam diagnostika o'tkazamiz.
+
+DIAGNOSTIKA REJASI: MUAMMONI ILDIZINI TOPISH
+Men muammoni aniqlash uchun tizimni manbadan (RSS) to mo'ljalgacha (Admin Panel) tekshirib chiqaman.
+
+1-Qadam: Tizim Loglarini Tahlil Qilish (Tizimning "Qora Qutisi")
+
+Maqsad: RSS-dan ma'lumot olish va maqola yaratish uchun mas'ul bo'lgan avtomatik vazifa (cron job) ishlayaptimi yoki yo'qmi, shuni aniqlash.
+
+Amal: Men hozir serverning to'liq loglarini ko'zdan kechiraman. rss-service.ts yoki article-generator.ts fayllariga oid xatoliklar, ogohlantirishlar yoki umuman, ishga tushganlik haqidagi yozuvlarni qidiraman. Bu bizga muammo RSS-ni o'qishdami yoki maqola yaratishdami, shuni darhol ko'rsatadi.
+
+2-Qadam: Ma'lumotlar Bazasini To'g'ridan-to'g'ri Tekshirish
+
+Maqsad: Agar loglarda xatolik bo'lmasa, balki maqolalar yaratilayotgan-u, lekin admin panelda ko'rinmayotgandir. Buni tekshirish.
+
+Amal: Men to'g'ridan-to'g'ri PostgreSQL (NeonDB) bazasiga ulanib, articles jadvalini tekshiraman. U yerda sourceType ustuni 'LOCAL_RSS' yoki 'FOREIGN_RSS' bo'lgan yozuvlar bor-yo'qligini qidiraman.
+
+3-Qadam: Admin Panel API'sini Tekshirish
+
+Maqsad: Maqolalar bazada mavjud bo'lsa-yu, lekin admin panelda ko'rinmayotgan bo'lsa, demak muammo GET /api/articles/drafts endpoint'ida bo'lishi mumkin.
+
+Amal: Men ushbu API endpoint'iga so'rov yuborib, uning qanday ma'lumot qaytarayotganini tekshiraman. Balki u noto'g'ri filtrlayotgandir.
+
+Xulosa: Bu uch qadamdan so'ng biz muammoning aniq qayerdaligini bilib olamiz va uni bartaraf etish uchun aniq rejaga ega bo'lamiz.
+
+Men hozir shu reja bo'yicha ishni boshlayman va birinchi navbatda server loglarini chuqur tahlil qilaman.
+
+Natijasi bo'yicha sizga darhol xabar beraman. Keling, bu jumboqni birgalikda yechamiz! 🚀

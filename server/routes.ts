@@ -5,7 +5,7 @@ import { db } from "./db";
 import { users } from "@shared/schema";
 import { initializeScheduler } from "./scheduler";
 import { fetchTrendingTopics } from "./services/trend-service";
-import { generateArticleFromTrendId } from "./services/article-service";
+import { generateArticleFromTrendId, autoGenerateRSSArticles } from "./services/article-service";
 import { 
   generateArticleFromLocalRSS,
   generateArticleFromForeignRSS,
@@ -366,6 +366,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         name: key.replace(/_/g, ' ')
       })),
     });
+  });
+
+  app.post("/api/rss/auto-generate", requireAuth, async (req, res) => {
+    try {
+      console.log("🧪 Manual RSS auto-generation triggered");
+      await autoGenerateRSSArticles();
+      res.json({ success: true, message: "RSS article generation completed" });
+    } catch (error) {
+      console.error("Error in manual RSS generation:", error);
+      res.status(500).json({ error: "Failed to generate RSS articles" });
+    }
   });
 
   app.get("/api/sitemap.xml", async (req, res) => {

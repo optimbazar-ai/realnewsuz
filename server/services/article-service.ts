@@ -1,6 +1,11 @@
 import { storage } from "../storage";
 import { generateArticleFromTrend } from "../gemini";
 import { searchPhotoForArticle } from "../unsplash";
+import { 
+  generateArticleFromLocalRSS, 
+  generateArticleFromForeignRSS 
+} from "../article-generator";
+import { RSS_FEEDS } from "../rss";
 
 // Kutilmagan xatoliklar uchun pauza yaratuvchi yordamchi funksiya
 const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
@@ -162,6 +167,102 @@ export async function autoGenerateArticles(): Promise<void> {
       action: "auto_generation",
       status: "error",
       message: `Avtomatik generatsiyada xatolik: ${error}`,
+    });
+  }
+}
+
+export async function autoGenerateRSSArticles(): Promise<void> {
+  try {
+    console.log("📰 Starting automated RSS article generation...");
+    
+    // Get all existing articles to track used photos
+    const existingArticles = await storage.getAllArticles();
+    const usedPhotoIds = existingArticles
+      .map(a => a.photoId)
+      .filter((id): id is string => id !== null);
+
+    // Get existing article source URLs to avoid duplicates
+    const existingSourceUrls = new Set(
+      existingArticles
+        .map(a => a.sourceUrl)
+        .filter((url): url is string => url !== null)
+    );
+
+    let articlesCreated = 0;
+    const errors: string[] = [];
+
+    // Process LOCAL RSS feeds (Uzbek news)
+    const localFeeds = Object.entries(RSS_FEEDS.LOCAL);
+    for (const [feedName, feedUrl] of localFeeds) {
+      try {
+        console.log(`📰 Processing local RSS: ${feedName}`);
+        const articleData = await generateArticleFromLocalRSS(feedUrl, usedPhotoIds);
+        
+        if (articleData && articleData.sourceUrl && !existingSourceUrls.has(articleData.sourceUrl)) {
+          await storage.createArticle(articleData);
+          articlesCreated++;
+          console.log(`✅ Created draft article from ${feedName}: "${articleData.title}"`);
+          
+          await storage.createLog({
+            action: "rss_article_generated",
+            status: "success",
+            message: `RSS maqola yaratildi (${feedName}): ${articleData.title}`,
+            metadata: JSON.stringify({ source: feedName, sourceType: "LOCAL_RSS" }),
+          });
+        } else if (articleData && existingSourceUrls.has(articleData.sourceUrl!)) {
+          console.log(`⏭️ Skipping duplicate article from ${feedName}`);
+        }
+      } catch (error) {
+        console.error(`❌ Error processing ${feedName}:`, error);
+        errors.push(`${feedName}: ${error}`);
+      }
+    }
+
+    // Process FOREIGN RSS feeds (International news - translate to Uzbek)
+    const foreignFeeds = Object.entries(RSS_FEEDS.FOREIGN);
+    for (const [feedName, feedUrl] of foreignFeeds) {
+      try {
+        console.log(`🌍 Processing foreign RSS: ${feedName}`);
+        const articleData = await generateArticleFromForeignRSS(feedUrl, usedPhotoIds);
+        
+        if (articleData && articleData.sourceUrl && !existingSourceUrls.has(articleData.sourceUrl)) {
+          await storage.createArticle(articleData);
+          articlesCreated++;
+          console.log(`✅ Created draft article from ${feedName}: "${articleData.title}"`);
+          
+          await storage.createLog({
+            action: "rss_article_generated",
+            status: "success",
+            message: `Xorijiy RSS maqola tarjima qilindi (${feedName}): ${articleData.title}`,
+            metadata: JSON.stringify({ source: feedName, sourceType: "FOREIGN_RSS" }),
+          });
+        } else if (articleData && existingSourceUrls.has(articleData.sourceUrl!)) {
+          console.log(`⏭️ Skipping duplicate article from ${feedName}`);
+        }
+      } catch (error) {
+        console.error(`❌ Error processing ${feedName}:`, error);
+        errors.push(`${feedName}: ${error}`);
+      }
+    }
+
+    const finalMessage = errors.length > 0
+      ? `RSS maqolalar yaratildi: ${articlesCreated} ta. Xatoliklar: ${errors.length} ta`
+      : `RSS maqolalar yaratildi: ${articlesCreated} ta (qoralamalar bo'limida)`;
+
+    await storage.createLog({
+      action: "auto_rss_generation",
+      status: errors.length > 0 ? "partial_success" : "success",
+      message: finalMessage,
+      metadata: JSON.stringify({ articlesCreated, errors }),
+    });
+
+    console.log(`✅ RSS automation complete: ${articlesCreated} articles created`);
+  } catch (error) {
+    console.error("❌ Error in RSS auto-generation:", error);
+    await storage.createLog({
+      action: "auto_rss_generation",
+      status: "error",
+      message: `RSS avtomatizatsiyasida xatolik: ${error}`,
     });
   }
 }
