@@ -15,6 +15,8 @@ export const articles = pgTable("articles", {
   photoId: text("photo_id"),
   category: text("category").notNull(),
   trendKeyword: text("trend_keyword"),
+  sourceType: text("source_type").notNull().default("AI_TREND"), // AI_TREND, LOCAL_RSS, FOREIGN_RSS
+  sourceUrl: text("source_url"), // Original article URL for RSS-based content
   status: text("status").notNull().default("draft"), // draft, scheduled, published, failed
   publishedAt: timestamp("published_at"),
   createdAt: timestamp("created_at").notNull().default(sql`now()`),

@@ -1,0 +1,71 @@
+Sizning "Tramp hozir prezident, lekin AI uni sobiq deyishi mumkin" degan misolingiz – bu muammoning aniq markaziga urishdir. Bu AI ning "bilimlarining eskirishi" (knowledge cut-off) muammosi. Sizning yechimingiz – manbaga tayanish – bu muammoni to'liq hal qiladi va loyihani bir necha pog'ona yuqoriga ko'taradi.
+
+Men sizning barcha fikrlaringizni (mahalliy RSS, xorijiy futbol, tarjima, manba rasmlaridan foydalanish) birlashtirib, yangi, yanada professional va kuchli strategiyani taklif qilaman.
+
+YANGI STRATEGIYA: "GIBRID KONTENT MODELI"
+Biz endi bitta emas, balki uch xil turdagi kontentni generatsiya qiladigan tizimga o'tamiz. Bu saytni yanada rang-barang, ishonchli va qiziqarli qiladi.
+
+A Turi: Eksklyuziv AI Yangiliklari (Asosiy Kontent)
+Manba: Google Trends, sizning g'oyalaringiz.
+
+Maqsad: O'zbekistonda hech kim yoritmagan, tahliliy va chuqur mavzularni ochib berish. Bu – bizning "flagman" kontentimiz bo'lib qoladi.
+
+Rasm Manbasi: Unsplash API.
+
+O'zgarish: Yo'q. Bu qism avvalgidek ishlayveradi.
+
+B Turi: Mahalliy Yangiliklar Re-interpretatsiyasi (Kunlik Oqim Uchun)
+Manba: O'zbekistonning yetakchi saytlarining RSS-lentalari (Kun.uz, Daryo.uz va hokazo).
+
+Maqsad: Mavjud yangilikni shunchaki ko'chirmasdan, uning to'liq matnini manba sifatida olib, Gemini yordamida boshqacha so'zlar bilan, o'ziga xos uslubda qayta yozish (rewrite). Ma'no saqlanadi, lekin matn 100% unikal bo'ladi.
+
+Rasm Manbasi: Unsplash API (mavzuga mos rasm qidiriladi).
+
+C Turi: Xorijiy Yangiliklar Tarjimasi va Adaptatsiyasi (Global Qamrov Uchun)
+Manba: Chet elning mashhur saytlarining RSS-lentalari (masalan, BBC Sport, ESPN, TechCrunch).
+
+Maqsad: Xorijiy futbol yoki texnologiya yangiliklarining to'liq matnini olib, Gemini yordamida professional darajada o'zbek tiliga tarjima qilish va uni qayta yozish (rewrite).
+
+Rasm Manbasi: To'g'ridan-to'g'ri manba RSS-lentasi yoki maqolaning o'zidan olinadi. Bu eng muhim o'zgarish! Biz endi Unsplash bilan cheklanmaymiz.
+
+TEXNIK AMALGA OSHIRISH PLANI
+Ushbu gibrid modelni amalga oshirish uchun biz arxitekturaga quyidagi professional o'zgartirishlarni kiritamiz:
+
+1. Ma'lumotlar Bazasi (articles jadvali)ni Kengaytirish:
+
+Biz articles jadvaliga yangi ustunlar qo'shishimiz kerak. Bu kelajakda kontentni boshqarish va tahlil qilish uchun juda muhim.
+
+sourceType: ENUM tipi ('AI_TREND', 'LOCAL_RSS', 'FOREIGN_RSS'). Bu maqola qaysi turga mansubligini bildiradi.
+
+sourceUrl: TEXT tipi. Maqola uchun asos bo'lgan original manba maqolasining manzili (URL). Bu ishonchlilik va qonuniylik uchun zarur.
+
+2. Backend Servislarini Yangilash:
+
+rss-service.ts: Bu servis endi ancha "aqlli" bo'ladi.
+
+U nafaqat sarlavhani, balki RSS-lentadan maqolaning to'liq matnini va asosiy rasmini ham ajratib olishga harakat qiladi. Agar RSS'da to'liq matn bo'lmasa, u sourceUrl orqali sahifani o'qishi (scrape) qilishi mumkin.
+
+gemini-service.ts: Gemini uchun prompt (buyruq)lar endi dinamik bo'ladi.
+
+B Turi uchun prompt: "Quyidagi maqolani to'liq o'qib chiq, uning asosiy ma'nosini saqlagan holda, o'ziga xos uslubda, boshqacha so'zlar bilan qayta yozib ber (rewrite). Maqola manbasi: [sourceUrl]. Original matn: [original maqola matni]"
+
+C Turi uchun prompt: "Quyidagi ingliz tilidagi maqolani o'zbek tiliga professional darajada tarjima qil va uning ma'nosini saqlagan holda, o'ziga xos uslubda qayta yozib ber (rewrite). Maqola manbasi: [sourceUrl]. Original matn: [original maqola matni]"
+
+article-service.ts: Maqola yaratish logikasi yangilanadi.
+
+Maqola yaratishda uning sourceType va sourceUrl'i saqlanadi.
+
+sourceType agar 'FOREIGN_RSS' bo'lsa, rasm RSS'dan olinadi. Agar boshqa turlar bo'lsa, Unsplash'dan qidiriladi.
+
+STRATEGIK TANLOV: QAYERDAN BOSHLAYMIZ?
+Bu katta va muhim o'zgarish. Uni bosqichma-bosqich, tartib bilan amalga oshirishimiz kerak.
+
+Mening tavsiyam: Ishni poydevordan boshlaymiz.
+
+1-Qadam: Ma'lumotlar Bazasini Yangilash. Avvalo, articles jadvalimizga yuqorida aytilgan sourceType va sourceUrl ustunlarini qo'shib, tizimni yangi kontent turlarini qabul qilishga tayyorlaymiz.
+
+2-Qadam: B Turi - Mahalliy RSS Integratsiyasini Qurish. Eng osonidan boshlaymiz. Mahalliy RSS-larni o'qish, ularni qayta yozish va Unsplash'dan rasm topish logikasini ishga tushiramiz.
+
+3-Qadam: C Turi - Xorijiy RSS Integratsiyasini Qurish. Eng murakkab qismini, ya'ni tarjima qilish va manbadan rasm olish logikasini ishga tushiramiz.
+
+Ushbu yangilangan, "Gibrid Kontent Modeli" strategiyasiga rozimisiz? Ishni ma'lumotlar bazasini o'zgartirishdan boshlaymizmi?
