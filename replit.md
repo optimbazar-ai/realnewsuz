@@ -55,13 +55,14 @@ Real News is an automated news content platform for Uzbekistan that uses AI to d
 3. **Log Cleanup** - Daily at 2:00 AM
 
 ## Design System
-- **Primary Color**: Blue (210 100% 50%) - trustworthy news authority
+- **Primary Color**: Red (0 84% 50%) - professional news authority (inspired by qalampir.uz)
 - **Success**: Green for published status
 - **Warning**: Yellow for scheduled/pending
 - **Error**: Red for failed operations
 - **Typography**: Inter font family for headlines and body
-- **Layout**: Responsive grid system, max-w-7xl containers
-- **Components**: Shadcn UI with custom theming
+- **Layout**: Compact grid system, professional news portal design
+- **Components**: Shadcn UI with custom news-style theming
+- **Style**: Professional news website aesthetic with red accents
 
 ## Environment Variables
 - `DATABASE_URL` - PostgreSQL connection string
@@ -94,14 +95,33 @@ Real News is an automated news content platform for Uzbekistan that uses AI to d
 ```
 
 ## Recent Changes (October 18, 2025)
+
+### Initial Setup
 - Initial project setup with full-stack architecture
 - Implemented complete data schema with articles, trends, and logs
-- Built beautiful public-facing website with hero section and article cards
 - Created comprehensive admin dashboard with sidebar navigation
 - Integrated Gemini AI for automated article generation in Uzbek
 - Set up scheduled tasks for trend detection and article publishing
 - Configured PostgreSQL database with Drizzle ORM
 - Implemented dark/light theme support throughout application
+
+### Professional News Website Redesign
+- **Complete visual overhaul** to match professional news websites (inspired by qalampir.uz)
+- Changed color scheme from blue to **red accents** for news authority aesthetic
+- Redesigned homepage with compact, professional news portal layout:
+  - Large hero article with side articles grid
+  - Latest news section with 2-column card layout
+  - Trending topics sidebar with numbered items
+  - Category badges and quick links
+  - Sticky header with improved navigation
+  - Professional footer
+- Enhanced article detail page:
+  - Structured metadata and timestamps
+  - Share buttons (Facebook, Twitter, copy link)
+  - Related articles with horizontal card layout
+  - Sidebar with latest news and categories
+  - Improved typography and readability
+- All pages now feature professional news website aesthetic with consistent red theming
 
 ## User Preferences
 - Uzbek language for all generated content
