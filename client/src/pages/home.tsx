@@ -4,10 +4,18 @@ import { Article, Trend } from "@shared/schema";
 import { Clock, Flame, TrendingUp, Calendar } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ThemeToggle } from "@/components/theme-toggle";
+import { Header } from "@/components/header";
 import { format } from "date-fns";
 import { Helmet } from "react-helmet-async";
 import { useState } from "react";
+
+const generateSlug = (title: string): string => {
+  return title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 50);
+};
 
 export default function Home() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -54,72 +62,16 @@ export default function Home() {
         <meta name="twitter:image" content={ogImage} />
       </Helmet>
 
-      {/* Header */}
-      <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container mx-auto">
-          <div className="flex h-16 items-center justify-between px-4">
-            <Link href="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity" data-testid="link-home">
-              <div className="bg-primary text-primary-foreground w-10 h-10 rounded flex items-center justify-center font-bold text-lg">
-                RN
-              </div>
-              <div className="flex flex-col">
-                <span className="text-lg font-bold leading-none">Real News</span>
-                <span className="text-xs text-muted-foreground">O'zbekiston yangiliklari</span>
-              </div>
-            </Link>
-            
-            <nav className="hidden md:flex items-center space-x-8">
-              <Link href="/" className="text-sm font-medium hover:text-primary transition-colors" data-testid="link-nav-home">
-                Bosh sahifa
-              </Link>
-              <Link href="/admin" className="text-sm font-medium hover:text-primary transition-colors" data-testid="link-nav-admin">
-                Boshqaruv
-              </Link>
-            </nav>
-
-            <ThemeToggle />
-          </div>
-        </div>
-      </header>
+      <Header />
 
       <div className="container mx-auto px-4 py-8">
-        {/* Category Filter Bar */}
-        <div className="mb-6 bg-card rounded-lg border border-border p-4">
-          <div className="flex items-center gap-2 mb-3">
-            <TrendingUp className="h-4 w-4 text-primary" />
-            <h3 className="font-semibold text-sm">Turkumlar bo'yicha</h3>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Button
-              variant={selectedCategory === null ? "default" : "outline"}
-              size="sm"
-              onClick={() => setSelectedCategory(null)}
-              data-testid="button-category-all"
-              className="h-8 rounded-full"
-            >
-              Barchasi
-            </Button>
-            {categories.map((cat) => (
-              <Button
-                key={cat}
-                variant={selectedCategory === cat ? "default" : "outline"}
-                size="sm"
-                onClick={() => setSelectedCategory(cat)}
-                data-testid={`button-category-${cat.toLowerCase()}`}
-                className="h-8 rounded-full"
-              >
-                {cat}
-              </Button>
-            ))}
-          </div>
-        </div>
 
         {/* Main News Grid - Hero Section */}
         {mainArticle && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
             {/* Main Featured Article - 2/3 width */}
             <div className="lg:col-span-2">
-              <Link href={`/article/${mainArticle.id}`}>
+              <Link href={`/article/${mainArticle.id}/${generateSlug(mainArticle.title)}`}>
                 <article className="group relative overflow-hidden rounded-xl bg-card border border-border hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 h-full" data-testid={`article-main-${mainArticle.id}`}>
                   <div 
                     className="w-full aspect-[16/9] bg-cover bg-center transform group-hover:scale-105 transition-transform duration-500"
@@ -158,7 +110,7 @@ export default function Home() {
             {/* Side Articles - 1/3 width */}
             <div className="flex flex-col gap-5">
               {latestArticles.slice(0, 2).map((article) => (
-                <Link key={article.id} href={`/article/${article.id}`}>
+                <Link key={article.id} href={`/article/${article.id}/${generateSlug(article.title)}`}>
                   <article className="group relative overflow-hidden rounded-xl bg-card border border-border hover:shadow-xl hover:scale-[1.02] transition-all duration-300 h-full" data-testid={`article-side-${article.id}`}>
                     <div 
                       className="w-full aspect-[16/9] bg-cover bg-center transform group-hover:scale-105 transition-transform duration-500"
@@ -209,7 +161,7 @@ export default function Home() {
             ) : latestArticles.length > 2 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {latestArticles.slice(2).map((article) => (
-                  <Link key={article.id} href={`/article/${article.id}`}>
+                  <Link key={article.id} href={`/article/${article.id}/${generateSlug(article.title)}`}>
                     <article className="group rounded-xl border border-border overflow-hidden hover:shadow-xl hover:scale-[1.02] transition-all duration-300 bg-card h-full" data-testid={`card-article-${article.id}`}>
                       <div className="relative overflow-hidden">
                         <div 

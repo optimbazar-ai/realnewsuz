@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useRoute, Link } from "wouter";
+import React from "react";
 import { Article } from "@shared/schema";
 import { ArrowLeft, Clock, Tag, Share2 } from "lucide-react";
 import { SiTelegram, SiFacebook } from "react-icons/si";
@@ -13,9 +14,11 @@ import { TelegramShareButton, FacebookShareButton } from "react-share";
 import { useToast } from "@/hooks/use-toast";
 
 export default function ArticleDetail() {
-  const [, params] = useRoute("/article/:id");
+  const [, params] = useRoute("/article/:id/:slug?");
   const articleId = params?.id;
+  const slug = params?.slug;
   const { toast } = useToast();
+  const [, setLocation] = useRoute();
 
   const { data: article, isLoading } = useQuery<Article>({
     queryKey: [`/api/articles/${articleId}`],
@@ -25,6 +28,23 @@ export default function ArticleDetail() {
   const { data: relatedArticles = [] } = useQuery<Article[]>({
     queryKey: ["/api/articles"],
   });
+
+  // Generate slug from title
+  const generateSlug = (title: string): string => {
+    return title
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 50);
+  };
+
+  // Redirect to SEO-friendly URL if slug is missing
+  React.useEffect(() => {
+    if (article && !slug) {
+      const newSlug = generateSlug(article.title);
+      setLocation(`/article/${articleId}/${newSlug}`);
+    }
+  }, [article, slug, articleId, setLocation]);
 
   const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
   const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
@@ -167,9 +187,6 @@ export default function ArticleDetail() {
             <nav className="hidden md:flex items-center space-x-8">
               <Link href="/" className="text-sm font-medium hover:text-primary transition-colors" data-testid="link-nav-home">
                 Bosh sahifa
-              </Link>
-              <Link href="/admin" className="text-sm font-medium hover:text-primary transition-colors" data-testid="link-nav-admin">
-                Boshqaruv
               </Link>
             </nav>
 

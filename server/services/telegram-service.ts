@@ -19,6 +19,15 @@ if (token) {
   console.log("✅ Telegram bot initialized successfully");
 }
 
+// Generate slug from title for SEO-friendly URLs
+function generateSlug(title: string): string {
+  return title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 50);
+}
+
 export async function sendArticleToChannel(article: Article): Promise<boolean> {
   if (!bot || !channelId) {
     console.log("⏭️  Telegram integration not configured, skipping channel notification");
@@ -30,9 +39,10 @@ export async function sendArticleToChannel(article: Article): Promise<boolean> {
       ? `https://${process.env.REPLIT_DOMAINS.split(',')[0]}`
       : 'https://real-news.uz';
     
-    const articleUrl = `${siteUrl}/article/${article.id}`;
+    const slug = generateSlug(article.title);
+    const articleUrl = `${siteUrl}/article/${article.id}/${slug}`;
 
-    const caption = `<b>${article.title}</b>\n\n${article.excerpt}\n\n📖 Batafsil: ${articleUrl}`;
+    const caption = `<b>${article.title}</b>\n\n${article.excerpt}`;
 
     if (article.imageUrl) {
       await bot.sendPhoto(channelId, article.imageUrl, {
@@ -40,7 +50,7 @@ export async function sendArticleToChannel(article: Article): Promise<boolean> {
         parse_mode: "HTML",
         reply_markup: {
           inline_keyboard: [
-            [{ text: "📰 To'liq o'qish", url: articleUrl }]
+            [{ text: "📖 To'liq o'qish", url: articleUrl }]
           ]
         }
       });
@@ -50,7 +60,7 @@ export async function sendArticleToChannel(article: Article): Promise<boolean> {
         disable_web_page_preview: false,
         reply_markup: {
           inline_keyboard: [
-            [{ text: "📰 To'liq o'qish", url: articleUrl }]
+            [{ text: "📖 To'liq o'qish", url: articleUrl }]
           ]
         }
       });

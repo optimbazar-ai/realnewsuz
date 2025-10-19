@@ -13,6 +13,7 @@ import {
 } from "./article-generator";
 import { RSS_FEEDS } from "./rss";
 import { sendArticleToChannel } from "./services/telegram-service";
+import { sendArticleToInstagram } from "./services/instagram-service";
 import { z } from "zod";
 import passport, { requireAuth } from "./auth";
 import bcrypt from "bcryptjs";
@@ -21,6 +22,28 @@ import { insertUserSchema, insertArticleSchema } from "@shared/schema";
 export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize the scheduler
   initializeScheduler();
+
+  // Clean up and create default admin account
+  try {
+    const allUsers = await db.select().from(users);
+    console.log(`📊 Found ${allUsers.length} existing users`);
+    
+    // Delete all existing users
+    for (const user of allUsers) {
+      await storage.deleteUser(user.id);
+      console.log(`🗑️ Deleted user: ${user.username}`);
+    }
+    
+    // Create fresh admin account
+    const hashedPassword = await bcrypt.hash("Hisobot201415", 10);
+    const newUser = await storage.createUser({
+      username: "Akramjon",
+      password: hashedPassword,
+    });
+    console.log(`✅ Fresh admin account created: Akramjon / Hisobot201415 (ID: ${newUser.id})`);
+  } catch (error) {
+    console.error("Error in user setup:", error);
+  }
 
   // Authentication endpoints
   app.post("/api/auth/register", async (req, res) => {
@@ -176,6 +199,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
           action: "telegram_notification_sent",
           status: "success",
           message: `Telegram kanaliga yuborildi: ${article.title}`,
+          metadata: JSON.stringify({ articleId: article.id }),
+        });
+      }
+
+      // Send article to Instagram
+      const instagramSent = await sendArticleToInstagram(article);
+      if (instagramSent) {
+        await storage.createLog({
+          action: "instagram_notification_sent",
+          status: "success",
+          message: `Instagram'ga yuborildi: ${article.title}`,
           metadata: JSON.stringify({ articleId: article.id }),
         });
       }
@@ -388,6 +422,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error in manual RSS generation:", error);
       res.status(500).json({ error: "Failed to generate RSS articles" });
+    }
+  });
+
+  // Test endpoint for RSS generation (no auth required for debugging)
+  app.get("/api/rss/test", async (req, res) => {
+    try {
+      console.log("🧪 TEST: Manual RSS auto-generation triggered");
+      await autoGenerateRSSArticles();
+      res.json({ success: true, message: "RSS article generation completed" });
+    } catch (error) {
+      console.error("Error in test RSS generation:", error);
+      res.status(500).json({ error: String(error) });
+    }
+  });
+
+  // Clean up old admin accounts - keep only Akramjon
+  app.get("/api/admin/cleanup", async (req, res) => {
+    try {
+      const allUsers = await db.select().from(users);
+      const akramjon = allUsers.find(u => u.username === "Akramjon");
+      const admin = allUsers.find(u => u.username === "admin");
+      
+      if (admin && akramjon && admin.id !== akramjon.id) {
+        await storage.deleteUser(admin.id);
+        console.log("✅ Old admin account deleted");
+        res.json({ success: true, message: "Old admin account deleted. Use Akramjon / Gisobot201415" });
+      } else {
+        res.json({ success: true, message: "No cleanup needed" });
+      }
+    } catch (error) {
+      console.error("Error in cleanup:", error);
+      res.status(500).json({ error: String(error) });
     }
   });
 
