@@ -145,6 +145,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(healthCheck);
   });
 
+  // Cron endpoint for external cron services (cron-job.org, etc.)
+  app.post("/api/cron/generate", async (req, res) => {
+    try {
+      // Verify cron secret
+      const authHeader = req.headers.authorization;
+      const cronSecret = process.env.CRON_SECRET;
+
+      if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      console.log("🔄 Cron job triggered: Starting RSS article generation...");
+
+      // Generate articles from RSS feeds
+      await autoGenerateRSSArticles();
+
+      // Get recently created articles and publish them
+      const drafts = await storage.getDraftArticles();
+      let publishedCount = 0;
+
+      for (const draft of drafts.slice(0, 5)) { // Publish up to 5 articles
+        const published = await storage.updateArticle(draft.id, {
+          status: "published",
+          publishedAt: new Date(),
+        });
+
+        if (published) {
+          publishedCount++;
+          // Send to Telegram channel
+          await sendArticleToChannel(published);
+        }
+      }
+
+      // Clear cache
+      cache.delete(CACHE_KEYS.PUBLISHED_ARTICLES);
+
+      console.log(`✅ Cron job completed: ${publishedCount} articles published`);
+
+      res.json({
+        success: true,
+        message: `Generated and published ${publishedCount} articles`,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error("❌ Cron job error:", error);
+      res.status(500).json({ error: "Cron job failed", details: String(error) });
+    }
+  });
+
   // Search endpoint
   app.get("/api/search", async (req, res) => {
     try {
