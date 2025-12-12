@@ -146,6 +146,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Cron endpoint for external cron services (cron-job.org, etc.)
+  // Returns immediately, work continues in background (for 30s timeout limit)
   app.post("/api/cron/generate", async (req, res) => {
     try {
       // Verify cron secret
@@ -156,37 +157,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ error: "Unauthorized" });
       }
 
-      console.log("🔄 Cron job triggered: Starting RSS article generation...");
+      console.log("🔄 Cron job triggered: Starting RSS article generation in background...");
 
-      // Generate articles from RSS feeds
-      await autoGenerateRSSArticles();
-
-      // Get recently created articles and publish them
-      const drafts = await storage.getDraftArticles();
-      let publishedCount = 0;
-
-      for (const draft of drafts.slice(0, 5)) { // Publish up to 5 articles
-        const published = await storage.updateArticle(draft.id, {
-          status: "published",
-          publishedAt: new Date(),
-        });
-
-        if (published) {
-          publishedCount++;
-          // Send to Telegram channel
-          await sendArticleToChannel(published);
-        }
-      }
-
-      // Clear cache
-      cache.delete(CACHE_KEYS.PUBLISHED_ARTICLES);
-
-      console.log(`✅ Cron job completed: ${publishedCount} articles published`);
-
+      // Return immediately - work continues in background
       res.json({
         success: true,
-        message: `Generated and published ${publishedCount} articles`,
+        message: "Cron job started in background",
         timestamp: new Date().toISOString()
+      });
+
+      // Background work (continues after response)
+      setImmediate(async () => {
+        try {
+          // Generate articles from RSS feeds
+          await autoGenerateRSSArticles();
+
+          // Get recently created articles and publish them
+          const drafts = await storage.getDraftArticles();
+          let publishedCount = 0;
+
+          for (const draft of drafts.slice(0, 3)) { // Publish up to 3 articles
+            const published = await storage.updateArticle(draft.id, {
+              status: "published",
+              publishedAt: new Date(),
+            });
+
+            if (published) {
+              publishedCount++;
+              // Send to Telegram channel
+              await sendArticleToChannel(published);
+            }
+          }
+
+          // Clear cache
+          cache.delete(CACHE_KEYS.PUBLISHED_ARTICLES);
+
+          console.log(`✅ Cron job completed: ${publishedCount} articles published`);
+        } catch (error) {
+          console.error("❌ Cron background job error:", error);
+        }
       });
     } catch (error) {
       console.error("❌ Cron job error:", error);
