@@ -82,13 +82,15 @@ export default function Home() {
             {/* Main Featured Article - 2/3 width */}
             <div className="lg:col-span-2">
               <Link href={`/article/${mainArticle.id}/${generateSlug(mainArticle.title)}`}>
-                <article className="group relative overflow-hidden rounded-2xl bg-card border border-border card-hover img-zoom h-full" data-testid={`article-main-${mainArticle.id}`}>
+                <article className="group relative overflow-hidden rounded-2xl bg-card border border-border card-hover h-full" data-testid={`article-main-${mainArticle.id}`}>
                   <div
-                    className="w-full aspect-[16/9] bg-cover bg-center"
+                    className="w-full aspect-[16/9] bg-cover bg-center bg-no-repeat transition-transform duration-500 group-hover:scale-105"
                     style={{
                       backgroundImage: mainArticle.imageUrl
                         ? `url(${mainArticle.imageUrl})`
-                        : 'linear-gradient(135deg, hsl(351, 84%, 55%) 0%, hsl(338, 100%, 65%) 50%, hsl(262, 80%, 55%) 100%)'
+                        : 'linear-gradient(135deg, hsl(351, 84%, 55%) 0%, hsl(338, 100%, 65%) 50%, hsl(262, 80%, 55%) 100%)',
+                      minHeight: '300px',
+                      backgroundColor: 'hsl(var(--muted))'
                     }}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/50 to-transparent" />
