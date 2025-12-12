@@ -194,6 +194,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin endpoint to refresh all article images with Unsplash
+  app.post("/api/admin/refresh-images", requireAuth, async (req, res) => {
+    try {
+      console.log("🔄 Starting image refresh for all articles...");
+
+      const articles = await storage.getPublishedArticles();
+      const usedPhotoIds: string[] = [];
+      let updatedCount = 0;
+      let errorCount = 0;
+
+      for (const article of articles) {
+        try {
+          // Skip if already has Unsplash image (has photoId)
+          if (article.photoId) {
+            console.log(`⏭️ Skipping "${article.title.substring(0, 30)}..." - already has Unsplash image`);
+            continue;
+          }
+
+          // Get new Unsplash image
+          const { searchPhotoForArticle } = await import("./unsplash");
+          const photo = await searchPhotoForArticle(article.title, usedPhotoIds);
+
+          if (photo) {
+            await storage.updateArticle(article.id, {
+              imageUrl: photo.imageUrl,
+              photographerName: photo.photographerName,
+              photographerUrl: photo.photographerUrl,
+              photoId: photo.photoId,
+            });
+            usedPhotoIds.push(photo.photoId);
+            updatedCount++;
+            console.log(`✅ Updated image for "${article.title.substring(0, 30)}..."`);
+          }
+
+          // Small delay to avoid API rate limiting
+          await new Promise(resolve => setTimeout(resolve, 500));
+        } catch (err) {
+          errorCount++;
+          console.error(`❌ Error updating "${article.title.substring(0, 30)}...":`, err);
+        }
+      }
+
+      // Clear cache
+      cache.delete(CACHE_KEYS.PUBLISHED_ARTICLES);
+
+      console.log(`✅ Image refresh complete: ${updatedCount} updated, ${errorCount} errors`);
+
+      res.json({
+        success: true,
+        updated: updatedCount,
+        errors: errorCount,
+        total: articles.length,
+      });
+    } catch (error) {
+      console.error("❌ Image refresh error:", error);
+      res.status(500).json({ error: "Image refresh failed", details: String(error) });
+    }
+  });
+
   // Search endpoint
   app.get("/api/search", async (req, res) => {
     try {
