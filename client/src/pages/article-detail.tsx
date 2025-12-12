@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useRoute, Link } from "wouter";
 import React from "react";
 import { Article } from "@shared/schema";
-import { ArrowLeft, Clock, Tag, Share2 } from "lucide-react";
+import { ArrowLeft, Clock, Tag, Share2, BookOpen } from "lucide-react";
 import { SiTelegram, SiFacebook } from "react-icons/si";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +12,7 @@ import { format } from "date-fns";
 import { Helmet } from "react-helmet-async";
 import { TelegramShareButton, FacebookShareButton } from "react-share";
 import { useToast } from "@/hooks/use-toast";
+import { calculateReadingTime } from "@/components/reading-time";
 
 export default function ArticleDetail() {
   const [, params] = useRoute("/article/:id/:slug?");
@@ -149,25 +150,57 @@ export default function ArticleDetail() {
       <Helmet>
         <title>{pageTitle}</title>
         <meta name="description" content={pageDescription} />
-        
+
         <meta property="og:type" content="article" />
         <meta property="og:title" content={article.title} />
         <meta property="og:description" content={pageDescription} />
         <meta property="og:image" content={pageImage} />
         <meta property="og:url" content={pageUrl} />
         <meta property="og:site_name" content="Real News" />
-        
+
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={article.title} />
         <meta name="twitter:description" content={pageDescription} />
         <meta name="twitter:image" content={pageImage} />
-        
+
         {article.publishedAt && (
           <meta property="article:published_time" content={new Date(article.publishedAt).toISOString()} />
         )}
         {article.category && (
           <meta property="article:section" content={article.category} />
         )}
+
+        {/* JSON-LD Structured Data for Google Rich Snippets */}
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "NewsArticle",
+            "headline": article.title,
+            "description": pageDescription,
+            "image": pageImage,
+            "datePublished": article.publishedAt ? new Date(article.publishedAt).toISOString() : undefined,
+            "dateModified": article.updatedAt ? new Date(article.updatedAt).toISOString() : undefined,
+            "author": {
+              "@type": "Organization",
+              "name": "Real News UZ"
+            },
+            "publisher": {
+              "@type": "Organization",
+              "name": "Real News UZ",
+              "logo": {
+                "@type": "ImageObject",
+                "url": `${baseUrl}/favicon.png`
+              }
+            },
+            "mainEntityOfPage": {
+              "@type": "WebPage",
+              "@id": pageUrl
+            },
+            "articleSection": article.category,
+            "wordCount": article.content.split(/\s+/).length,
+            "inLanguage": "uz"
+          })}
+        </script>
       </Helmet>
 
       {/* Header */}
@@ -183,7 +216,7 @@ export default function ArticleDetail() {
                 <span className="text-xs text-muted-foreground">O'zbekiston yangiliklari</span>
               </div>
             </Link>
-            
+
             <nav className="hidden md:flex items-center space-x-8">
               <Link href="/" className="text-sm font-medium hover:text-primary transition-colors" data-testid="link-nav-home">
                 Bosh sahifa
@@ -219,10 +252,14 @@ export default function ArticleDetail() {
                   <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6 leading-tight">
                     {article.title}
                   </h1>
-                  <div className="flex items-center gap-4 text-muted-foreground pb-6 border-b border-border">
+                  <div className="flex flex-wrap items-center gap-4 text-muted-foreground pb-6 border-b border-border">
                     <span className="flex items-center gap-2 text-sm font-medium">
                       <Clock className="h-4 w-4 text-primary" />
                       {article.publishedAt && format(new Date(article.publishedAt), "HH:mm, dd MMMM yyyy")}
+                    </span>
+                    <span className="flex items-center gap-2 text-sm font-medium">
+                      <BookOpen className="h-4 w-4 text-primary" />
+                      {calculateReadingTime(article.content)} daqiqa o'qish
                     </span>
                     {article.trendKeyword && (
                       <span className="flex items-center gap-2 text-sm">
@@ -236,14 +273,14 @@ export default function ArticleDetail() {
                 {/* Featured image */}
                 {article.imageUrl && (
                   <div className="mb-8">
-                    <div 
+                    <div
                       className="w-full aspect-[16/9] bg-cover bg-center rounded-lg border border-border"
                       style={{ backgroundImage: `url(${article.imageUrl})` }}
                     />
                     {article.photographerName && (
                       <p className="text-xs text-muted-foreground mt-2 text-right">
                         Rasm:{" "}
-                        <a 
+                        <a
                           href={article.photographerUrl || "#"}
                           target="_blank"
                           rel="noopener noreferrer"
@@ -253,7 +290,7 @@ export default function ArticleDetail() {
                           {article.photographerName}
                         </a>
                         {" "}/{" "}
-                        <a 
+                        <a
                           href="https://unsplash.com?utm_source=real_news&utm_medium=referral"
                           target="_blank"
                           rel="noopener noreferrer"
@@ -290,10 +327,10 @@ export default function ArticleDetail() {
                           Facebook
                         </Button>
                       </FacebookShareButton>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="gap-2" 
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-2"
                         onClick={copyToClipboard}
                         data-testid="button-copy-link"
                       >
@@ -316,11 +353,11 @@ export default function ArticleDetail() {
                         <Link key={relatedArticle.id} href={`/article/${relatedArticle.id}`}>
                           <Card className="overflow-hidden hover-elevate transition-all bg-card border border-border" data-testid={`card-related-${relatedArticle.id}`}>
                             <div className="flex gap-4 p-4">
-                              <div 
+                              <div
                                 className="w-32 h-24 flex-shrink-0 bg-muted bg-cover bg-center rounded"
                                 style={{
-                                  backgroundImage: relatedArticle.imageUrl 
-                                    ? `url(${relatedArticle.imageUrl})` 
+                                  backgroundImage: relatedArticle.imageUrl
+                                    ? `url(${relatedArticle.imageUrl})`
                                     : 'linear-gradient(135deg, hsl(var(--muted)) 0%, hsl(var(--accent)) 100%)'
                                 }}
                               />

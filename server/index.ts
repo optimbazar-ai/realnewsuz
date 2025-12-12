@@ -1,14 +1,40 @@
 import "dotenv/config";
 import express, { type Request, Response, NextFunction } from "express";
 import session from "express-session";
+import helmet from "helmet";
+import cors from "cors";
+import compression from "compression";
 import passport from "./auth";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { apiLimiter } from "./rate-limiter";
+import { AppError } from "./errors";
 
 const app = express();
 app.set("trust proxy", 1);
+
+// Security middleware
+app.use(helmet({
+  contentSecurityPolicy: process.env.NODE_ENV === "production" ? undefined : false,
+  crossOriginEmbedderPolicy: false,
+}));
+
+// CORS configuration
+app.use(cors({
+  origin: process.env.NODE_ENV === "production"
+    ? process.env.CORS_ORIGIN || true
+    : true,
+  credentials: true,
+}));
+
+// Compression for better performance
+app.use(compression());
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// Apply rate limiting to all API routes
+app.use("/api", apiLimiter);
 
 app.use(
   session({
@@ -61,11 +87,21 @@ app.use((req, res, next) => {
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-    const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
+    // Handle AppError instances
+    if (err instanceof AppError) {
+      log(`❌ ${err.statusCode}: ${err.message}`);
+      return res.status(err.statusCode).json({
+        error: err.message,
+        statusCode: err.statusCode
+      });
+    }
 
-    res.status(status).json({ message });
-    throw err;
+    // Handle other errors
+    const status = err.status || err.statusCode || 500;
+    const message = err.message || "Ichki server xatosi";
+
+    log(`❌ ${status}: ${message}`);
+    res.status(status).json({ error: message, statusCode: status });
   });
 
   // importantly only setup vite in development and after

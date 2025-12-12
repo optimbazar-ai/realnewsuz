@@ -19,21 +19,31 @@ const generateSlug = (title: string): string => {
 
 export default function Home() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState<string>("");
 
-  const { data: articles = [], isLoading: articlesLoading } = useQuery<Article[]>({
-    queryKey: ["/api/articles"],
+  // Fetch articles with category filter
+  const { data: articlesResponse, isLoading: articlesLoading } = useQuery<{ articles: Article[], total: number }>({
+    queryKey: ["/api/articles", selectedCategory],
+    queryFn: async () => {
+      const url = selectedCategory
+        ? `/api/articles?category=${encodeURIComponent(selectedCategory)}`
+        : "/api/articles";
+      const res = await fetch(url);
+      return res.json();
+    }
   });
 
   const { data: trends = [], isLoading: trendsLoading } = useQuery<Trend[]>({
     queryKey: ["/api/trends"],
   });
 
-  const filteredArticles = selectedCategory 
-    ? articles.filter(a => a.category === selectedCategory)
-    : articles;
+  // Handle both old array format and new object format
+  const articles = Array.isArray(articlesResponse)
+    ? articlesResponse
+    : (articlesResponse?.articles || []);
 
-  const mainArticle = filteredArticles[0];
-  const latestArticles = filteredArticles.slice(1);
+  const mainArticle = articles[0];
+  const latestArticles = articles.slice(1);
   const trendingTopics = trends.filter(t => !t.isProcessed).slice(0, 8);
 
   const categories = ["Siyosat", "Iqtisodiyot", "Sport", "Texnologiya", "Madaniyat", "Sog'liqni saqlash", "Ta'lim", "Ijtimoiy", "Boshqa"];
@@ -48,14 +58,14 @@ export default function Home() {
       <Helmet>
         <title>{pageTitle}</title>
         <meta name="description" content={pageDescription} />
-        
+
         <meta property="og:type" content="website" />
         <meta property="og:title" content={pageTitle} />
         <meta property="og:description" content={pageDescription} />
         <meta property="og:image" content={ogImage} />
         <meta property="og:url" content={baseUrl} />
         <meta property="og:site_name" content="Real News" />
-        
+
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={pageTitle} />
         <meta name="twitter:description" content={pageDescription} />
@@ -72,35 +82,37 @@ export default function Home() {
             {/* Main Featured Article - 2/3 width */}
             <div className="lg:col-span-2">
               <Link href={`/article/${mainArticle.id}/${generateSlug(mainArticle.title)}`}>
-                <article className="group relative overflow-hidden rounded-xl bg-card border border-border hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 h-full" data-testid={`article-main-${mainArticle.id}`}>
-                  <div 
-                    className="w-full aspect-[16/9] bg-cover bg-center transform group-hover:scale-105 transition-transform duration-500"
+                <article className="group relative overflow-hidden rounded-2xl bg-card border border-border card-hover img-zoom h-full" data-testid={`article-main-${mainArticle.id}`}>
+                  <div
+                    className="w-full aspect-[16/9] bg-cover bg-center"
                     style={{
-                      backgroundImage: mainArticle.imageUrl 
-                        ? `url(${mainArticle.imageUrl})` 
-                        : 'linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--chart-1)) 100%)'
+                      backgroundImage: mainArticle.imageUrl
+                        ? `url(${mainArticle.imageUrl})`
+                        : 'linear-gradient(135deg, hsl(351, 84%, 55%) 0%, hsl(338, 100%, 65%) 50%, hsl(262, 80%, 55%) 100%)'
                     }}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/60 to-transparent group-hover:from-black/100 transition-all duration-300" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/50 to-transparent" />
                   <div className="absolute bottom-0 left-0 right-0 p-8">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Badge className="bg-primary text-primary-foreground border-0 font-semibold" data-testid={`badge-main-category-${mainArticle.id}`}>
+                    <div className="flex items-center gap-3 mb-4">
+                      <span className="badge-gradient" data-testid={`badge-main-category-${mainArticle.id}`}>
                         {mainArticle.category}
-                      </Badge>
-                      <div className="flex items-center gap-1 text-xs text-white/70">
+                      </span>
+                      <div className="flex items-center gap-1 text-xs text-white/80 bg-white/10 backdrop-blur-sm px-2 py-1 rounded-full">
                         <Calendar className="h-3 w-3" />
                         <span>{mainArticle.publishedAt && format(new Date(mainArticle.publishedAt), "dd MMM yyyy")}</span>
                       </div>
                     </div>
-                    <h2 className="text-2xl md:text-4xl font-bold text-white mb-4 line-clamp-3 group-hover:text-primary transition-colors leading-tight">
+                    <h2 className="text-2xl md:text-4xl font-bold text-white mb-4 line-clamp-3 group-hover:text-primary transition-colors duration-300 leading-tight">
                       {mainArticle.title}
                     </h2>
                     <p className="text-white/90 text-base mb-4 line-clamp-2 leading-relaxed">
                       {mainArticle.excerpt}
                     </p>
-                    <div className="flex items-center gap-2 text-sm text-white/80">
-                      <Clock className="h-4 w-4" />
-                      <span>{mainArticle.publishedAt && format(new Date(mainArticle.publishedAt), "HH:mm")}</span>
+                    <div className="flex items-center gap-3 text-sm text-white/80">
+                      <span className="flex items-center gap-1 bg-white/10 backdrop-blur-sm px-3 py-1 rounded-full">
+                        <Clock className="h-4 w-4" />
+                        {mainArticle.publishedAt && format(new Date(mainArticle.publishedAt), "HH:mm")}
+                      </span>
                     </div>
                   </div>
                 </article>
@@ -109,23 +121,23 @@ export default function Home() {
 
             {/* Side Articles - 1/3 width */}
             <div className="flex flex-col gap-5">
-              {latestArticles.slice(0, 2).map((article) => (
+              {latestArticles.slice(0, 2).map((article, index) => (
                 <Link key={article.id} href={`/article/${article.id}/${generateSlug(article.title)}`}>
-                  <article className="group relative overflow-hidden rounded-xl bg-card border border-border hover:shadow-xl hover:scale-[1.02] transition-all duration-300 h-full" data-testid={`article-side-${article.id}`}>
-                    <div 
-                      className="w-full aspect-[16/9] bg-cover bg-center transform group-hover:scale-105 transition-transform duration-500"
+                  <article className={`group relative overflow-hidden rounded-2xl bg-card border border-border card-hover img-zoom h-full fade-in`} style={{ animationDelay: `${index * 100}ms` }} data-testid={`article-side-${article.id}`}>
+                    <div
+                      className="w-full aspect-[16/9] bg-cover bg-center"
                       style={{
-                        backgroundImage: article.imageUrl 
-                          ? `url(${article.imageUrl})` 
+                        backgroundImage: article.imageUrl
+                          ? `url(${article.imageUrl})`
                           : 'linear-gradient(135deg, hsl(var(--muted)) 0%, hsl(var(--accent)) 100%)'
                       }}
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/60 to-transparent group-hover:from-black/100 transition-all duration-300" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/50 to-transparent" />
                     <div className="absolute bottom-0 left-0 right-0 p-5">
-                      <Badge variant="secondary" className="mb-2 text-xs font-semibold">
+                      <span className="badge-gradient mb-2 inline-block text-xs">
                         {article.category}
-                      </Badge>
-                      <h3 className="text-lg font-bold text-white mb-2 line-clamp-2 group-hover:text-primary transition-colors leading-snug">
+                      </span>
+                      <h3 className="text-lg font-bold text-white mb-2 line-clamp-2 group-hover:text-primary transition-colors duration-300 leading-snug">
                         {article.title}
                       </h3>
                       <div className="flex items-center gap-2 text-xs text-white/70">
@@ -160,33 +172,35 @@ export default function Home() {
               </div>
             ) : latestArticles.length > 2 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {latestArticles.slice(2).map((article) => (
+                {latestArticles.slice(2).map((article, index) => (
                   <Link key={article.id} href={`/article/${article.id}/${generateSlug(article.title)}`}>
-                    <article className="group rounded-xl border border-border overflow-hidden hover:shadow-xl hover:scale-[1.02] transition-all duration-300 bg-card h-full" data-testid={`card-article-${article.id}`}>
-                      <div className="relative overflow-hidden">
-                        <div 
-                          className="w-full aspect-[16/9] bg-muted bg-cover bg-center transform group-hover:scale-110 transition-transform duration-500"
+                    <article className="group rounded-2xl border border-border overflow-hidden card-hover bg-card h-full fade-in" style={{ animationDelay: `${index * 50}ms` }} data-testid={`card-article-${article.id}`}>
+                      <div className="relative img-zoom">
+                        <div
+                          className="w-full aspect-[16/9] bg-muted bg-cover bg-center"
                           style={{
-                            backgroundImage: article.imageUrl 
-                              ? `url(${article.imageUrl})` 
+                            backgroundImage: article.imageUrl
+                              ? `url(${article.imageUrl})`
                               : 'linear-gradient(135deg, hsl(var(--muted)) 0%, hsl(var(--accent)) 100%)'
                           }}
                         />
+                        <div className="absolute top-3 left-3">
+                          <span className="badge-gradient" data-testid={`badge-article-category-${article.id}`}>
+                            {article.category}
+                          </span>
+                        </div>
                       </div>
                       <div className="p-5">
                         <div className="flex items-center gap-2 mb-3">
-                          <Badge variant="outline" className="text-xs font-medium" data-testid={`badge-article-category-${article.id}`}>
-                            {article.category}
-                          </Badge>
-                          <span className="text-xs text-muted-foreground flex items-center gap-1">
+                          <span className="text-xs text-muted-foreground flex items-center gap-1 bg-muted px-2 py-1 rounded-full">
                             <Clock className="h-3 w-3" />
                             {article.publishedAt && format(new Date(article.publishedAt), "HH:mm")}
                           </span>
                         </div>
-                        <h3 className="font-bold text-lg mb-3 line-clamp-2 group-hover:text-primary transition-colors leading-tight">
+                        <h3 className="font-bold text-lg mb-3 line-clamp-2 group-hover:text-primary transition-colors duration-300 leading-tight">
                           {article.title}
                         </h3>
-                        <p className="text-muted-foreground text-sm line-clamp-3 leading-relaxed">
+                        <p className="text-muted-foreground text-sm line-clamp-2 leading-relaxed">
                           {article.excerpt}
                         </p>
                       </div>
@@ -198,7 +212,7 @@ export default function Home() {
               <div className="text-center py-16 bg-muted/30 rounded-xl">
                 <p className="text-muted-foreground text-lg">Hozircha yangiliklar yo'q</p>
                 {selectedCategory && (
-                  <button 
+                  <button
                     onClick={() => setSelectedCategory(null)}
                     className="mt-4 text-primary hover:underline text-sm"
                     data-testid="button-clear-filter"
@@ -253,18 +267,25 @@ export default function Home() {
       </div>
 
       {/* Footer */}
-      <footer className="border-t border-border mt-12 py-8 bg-muted/30">
+      <footer className="border-t border-border mt-12 py-12 glass">
         <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <div className="flex items-center space-x-2">
-              <div className="bg-primary text-primary-foreground w-8 h-8 rounded flex items-center justify-center font-bold">
-                RN
+          <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+            <div className="flex items-center space-x-3">
+              <div className="gradient-primary text-white w-10 h-10 rounded-xl flex items-center justify-center font-bold text-lg">
+                ✦
               </div>
-              <span className="font-semibold">Real News</span>
+              <div>
+                <span className="font-bold text-lg gradient-text">Real News</span>
+                <p className="text-xs text-muted-foreground">O'zbekiston yangiliklari</p>
+              </div>
             </div>
             <p className="text-sm text-muted-foreground text-center">
               © 2025 Real News. AI yordamida ishlaydigan avtomatik yangiliklar platformasi
             </p>
+            <div className="flex items-center gap-4">
+              <a href="#" className="text-muted-foreground hover:text-primary transition-colors">Telegram</a>
+              <a href="#" className="text-muted-foreground hover:text-primary transition-colors">Instagram</a>
+            </div>
           </div>
         </div>
       </footer>

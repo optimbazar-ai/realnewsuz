@@ -1,0 +1,1 @@
+Fix: Replace all import.meta.dirname with __dirname in vite.config.ts

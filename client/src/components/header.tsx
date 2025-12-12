@@ -1,6 +1,6 @@
 import { Link } from "wouter";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { Search, Menu, X } from "lucide-react";
+import { Search, Menu, X, Sparkles } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 
@@ -22,24 +22,24 @@ export function Header() {
   return (
     <>
       {/* Main Header */}
-      <header className="sticky top-0 z-50 w-full bg-gradient-to-r from-slate-900 to-slate-800 border-b border-red-600/20 shadow-lg">
+      <header className="sticky top-0 z-50 w-full glass border-b border-white/10">
         <div className="container mx-auto px-4">
           {/* Top Row - Logo and Controls */}
           <div className="flex h-16 items-center justify-between">
             {/* Logo */}
             <Link href="/" className="flex items-center space-x-3 hover:opacity-90 transition-opacity group">
-              <div className="bg-gradient-to-br from-red-600 to-red-700 text-white w-12 h-12 rounded-lg flex items-center justify-center font-bold text-xl shadow-lg group-hover:shadow-red-600/50 transition-shadow">
-                RN
+              <div className="gradient-primary text-white w-12 h-12 rounded-xl flex items-center justify-center font-bold text-xl shadow-lg hover-glow transition-all duration-300">
+                <Sparkles className="w-6 h-6" />
               </div>
               <div className="flex flex-col">
-                <span className="text-lg font-bold text-white leading-none">REAL NEWS</span>
-                <span className="text-xs text-slate-400 font-medium">O'zbekiston yangiliklari</span>
+                <span className="text-lg font-bold gradient-text leading-none">REAL NEWS</span>
+                <span className="text-xs text-muted-foreground font-medium">O'zbekiston yangiliklari</span>
               </div>
             </Link>
 
             {/* Desktop Navigation */}
             <nav className="hidden lg:flex items-center space-x-1">
-              <Link href="/" className="px-3 py-2 text-sm font-medium text-slate-200 hover:text-white hover:bg-white/10 rounded transition-colors">
+              <Link href="/" className="px-3 py-2 text-sm font-medium text-foreground hover:text-primary animated-underline transition-colors">
                 Bosh sahifa
               </Link>
             </nav>
@@ -49,7 +49,7 @@ export function Header() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="text-slate-300 hover:text-white hover:bg-white/10"
+                className="text-foreground hover:text-primary hover:bg-primary/10 transition-all duration-300"
                 onClick={() => setSearchOpen(!searchOpen)}
               >
                 <Search className="h-5 w-5" />
@@ -58,7 +58,7 @@ export function Header() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="lg:hidden text-slate-300 hover:text-white hover:bg-white/10"
+                className="lg:hidden text-foreground hover:text-primary hover:bg-primary/10"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               >
                 {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -68,22 +68,31 @@ export function Header() {
 
           {/* Search Bar */}
           {searchOpen && (
-            <div className="pb-4 border-t border-slate-700/50">
+            <div className="pb-4 border-t border-border/50 pt-4 slide-up">
               <input
                 type="text"
-                placeholder="Qidiruv..."
-                className="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600/50 transition-colors"
+                placeholder="Qidiruv... (Enter bosing)"
+                className="w-full px-4 py-3 bg-card border border-border rounded-xl text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-300"
+                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    const query = (e.target as HTMLInputElement).value.trim();
+                    if (query) {
+                      window.location.href = `/?search=${encodeURIComponent(query)}`;
+                    }
+                  }
+                }}
               />
             </div>
           )}
 
           {/* Category Navigation */}
-          <div className="hidden md:flex items-center space-x-1 pb-0 overflow-x-auto scrollbar-hide border-t border-slate-700/30">
+          <div className="hidden md:flex items-center space-x-1 pb-0 overflow-x-auto scrollbar-hide border-t border-border/30">
             {CATEGORIES.map((category) => (
               <Link
                 key={category}
                 href={category === "Bosh sahifa" ? "/" : `/?category=${encodeURIComponent(category)}`}
-                className="px-4 py-3 text-sm font-medium text-slate-300 hover:text-white hover:bg-white/5 border-b-2 border-transparent hover:border-red-600 transition-all whitespace-nowrap"
+                className="px-4 py-3 text-sm font-medium text-muted-foreground hover:text-primary border-b-2 border-transparent hover:border-primary transition-all duration-300 whitespace-nowrap"
               >
                 {category}
               </Link>
@@ -92,13 +101,13 @@ export function Header() {
 
           {/* Mobile Menu */}
           {mobileMenuOpen && (
-            <div className="md:hidden pb-4 border-t border-slate-700/30">
-              <nav className="flex flex-col space-y-2">
+            <div className="md:hidden pb-4 border-t border-border/30 slide-up">
+              <nav className="flex flex-col space-y-2 pt-4">
                 {CATEGORIES.map((category) => (
                   <Link
                     key={category}
                     href={category === "Bosh sahifa" ? "/" : `/?category=${encodeURIComponent(category)}`}
-                    className="px-4 py-2 text-sm font-medium text-slate-300 hover:text-white hover:bg-white/10 rounded transition-colors"
+                    className="px-4 py-3 text-sm font-medium text-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-all duration-300"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     {category}

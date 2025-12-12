@@ -6,7 +6,7 @@ import { users } from "@shared/schema";
 import { initializeScheduler } from "./scheduler";
 import { fetchTrendingTopics } from "./services/trend-service";
 import { generateArticleFromTrendId, autoGenerateRSSArticles } from "./services/article-service";
-import { 
+import {
   generateArticleFromLocalRSS,
   generateArticleFromForeignRSS,
   generateArticlesFromAllSources
@@ -18,6 +18,8 @@ import { z } from "zod";
 import passport, { requireAuth } from "./auth";
 import bcrypt from "bcryptjs";
 import { insertUserSchema, insertArticleSchema } from "@shared/schema";
+import { authLimiter, aiLimiter } from "./rate-limiter";
+import { cache, CACHE_KEYS, CACHE_TTL } from "./cache";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize the scheduler
@@ -27,13 +29,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   try {
     const allUsers = await db.select().from(users);
     console.log(`📊 Found ${allUsers.length} existing users`);
-    
+
     // Delete all existing users
     for (const user of allUsers) {
       await storage.deleteUser(user.id);
       console.log(`🗑️ Deleted user: ${user.username}`);
     }
-    
+
     // Create fresh admin account
     const hashedPassword = await bcrypt.hash("Hisobot201415", 10);
     const newUser = await storage.createUser({
@@ -49,14 +51,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/auth/register", async (req, res) => {
     try {
       const { username, password } = insertUserSchema.parse(req.body);
-      
+
       const allUsers = await db.select().from(users);
       if (allUsers.length > 0) {
-        return res.status(403).json({ 
-          error: "Registration is disabled. Admin account already exists." 
+        return res.status(403).json({
+          error: "Registration is disabled. Admin account already exists."
         });
       }
-      
+
       const hashedPassword = await bcrypt.hash(password, 10);
       const user = await storage.createUser({
         username,
@@ -76,7 +78,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/auth/login", (req, res, next) => {
+  app.post("/api/auth/login", authLimiter, (req, res, next) => {
     passport.authenticate("local", (err: any, user: any, info: any) => {
       if (err) {
         return next(err);
@@ -88,9 +90,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (err) {
           return next(err);
         }
-        return res.json({ 
-          success: true, 
-          user: { id: user.id, username: user.username } 
+        return res.json({
+          success: true,
+          user: { id: user.id, username: user.username }
         });
       });
     })(req, res, next);
@@ -108,19 +110,184 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/auth/me", (req, res) => {
     if (req.isAuthenticated()) {
       const user = req.user as any;
-      return res.json({ 
-        authenticated: true, 
-        user: { id: user.id, username: user.username } 
+      return res.json({
+        authenticated: true,
+        user: { id: user.id, username: user.username }
       });
     }
     res.json({ authenticated: false });
   });
 
-  // Articles endpoints
+  // Health check endpoint
+  app.get("/api/health", async (req, res) => {
+    const healthCheck = {
+      status: "healthy",
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      services: {
+        database: "unknown",
+        gemini: process.env.GEMINI_API_KEY ? "configured" : "not configured",
+        telegram: process.env.TELEGRAM_BOT_TOKEN ? "configured" : "not configured",
+        instagram: process.env.INSTAGRAM_USERNAME ? "configured" : "not configured",
+      },
+      cache: cache.stats(),
+    };
+
+    try {
+      // Test database connection
+      await db.select().from(users).limit(1);
+      healthCheck.services.database = "connected";
+    } catch (error) {
+      healthCheck.services.database = "disconnected";
+      healthCheck.status = "degraded";
+    }
+
+    res.json(healthCheck);
+  });
+
+  // Search endpoint
+  app.get("/api/search", async (req, res) => {
+    try {
+      const query = (req.query.q as string || "").toLowerCase().trim();
+      const category = req.query.category as string;
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 10;
+
+      if (!query && !category) {
+        return res.json({ articles: [], total: 0, page, limit });
+      }
+
+      let articles = await storage.getPublishedArticles();
+
+      // Filter by search query
+      if (query) {
+        articles = articles.filter(article =>
+          article.title.toLowerCase().includes(query) ||
+          article.excerpt?.toLowerCase().includes(query) ||
+          article.content.toLowerCase().includes(query) ||
+          article.category.toLowerCase().includes(query)
+        );
+      }
+
+      // Filter by category
+      if (category) {
+        articles = articles.filter(article => article.category === category);
+      }
+
+      const total = articles.length;
+      const startIndex = (page - 1) * limit;
+      const paginatedArticles = articles.slice(startIndex, startIndex + limit);
+
+      res.json({
+        articles: paginatedArticles,
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit)
+      });
+    } catch (error) {
+      console.error("Error searching articles:", error);
+      res.status(500).json({ error: "Search failed" });
+    }
+  });
+
+  // Sitemap.xml endpoint
+  app.get("/sitemap.xml", async (req, res) => {
+    try {
+      const baseUrl = process.env.BASE_URL || "https://realnews.uz";
+      const articles = await storage.getPublishedArticles();
+
+      let sitemap = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>${baseUrl}/</loc>
+    <changefreq>hourly</changefreq>
+    <priority>1.0</priority>
+  </url>`;
+
+      for (const article of articles) {
+        const slug = article.title
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-+|-+$/g, '')
+          .slice(0, 50);
+
+        sitemap += `
+  <url>
+    <loc>${baseUrl}/article/${article.id}/${slug}</loc>
+    <lastmod>${new Date(article.updatedAt || article.createdAt).toISOString()}</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>`;
+      }
+
+      sitemap += `
+</urlset>`;
+
+      res.set("Content-Type", "application/xml");
+      res.send(sitemap);
+    } catch (error) {
+      console.error("Error generating sitemap:", error);
+      res.status(500).send("Error generating sitemap");
+    }
+  });
+
+  // Robots.txt endpoint
+  app.get("/robots.txt", (req, res) => {
+    const baseUrl = process.env.BASE_URL || "https://realnews.uz";
+    const robotsTxt = `User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+
+Sitemap: ${baseUrl}/sitemap.xml
+`;
+    res.set("Content-Type", "text/plain");
+    res.send(robotsTxt);
+  });
+
+  // Articles endpoints with caching and pagination
   app.get("/api/articles", async (req, res) => {
     try {
-      const articles = await storage.getPublishedArticles();
-      res.json(articles);
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 50;
+      const category = req.query.category as string;
+
+      // Check cache first (only for default requests)
+      const cacheKey = category ? `articles_${category}` : CACHE_KEYS.PUBLISHED_ARTICLES;
+      if (!category && page === 1 && limit === 50) {
+        const cached = cache.get<any[]>(cacheKey);
+        if (cached) {
+          return res.json(cached);
+        }
+      }
+
+      let articles = await storage.getPublishedArticles();
+
+      // Filter by category
+      if (category) {
+        articles = articles.filter(a => a.category === category);
+      }
+
+      // Paginate
+      const total = articles.length;
+      const startIndex = (page - 1) * limit;
+      const paginatedArticles = articles.slice(startIndex, startIndex + limit);
+
+      const response = {
+        articles: paginatedArticles,
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit)
+      };
+
+      // Cache for 1 minute (only full list)
+      if (!category && page === 1 && limit === 50) {
+        cache.set(cacheKey, paginatedArticles, CACHE_TTL.ARTICLES);
+      }
+
+      res.json(response);
     } catch (error) {
       console.error("Error fetching articles:", error);
       res.status(500).json({ error: "Failed to fetch articles" });
@@ -143,11 +310,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!article) {
         return res.status(404).json({ error: "Article not found" });
       }
-      
+
       if (article.status !== "published" && !req.isAuthenticated()) {
         return res.status(404).json({ error: "Article not found" });
       }
-      
+
       res.json(article);
     } catch (error) {
       console.error("Error fetching article:", error);
@@ -159,7 +326,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const updateData = insertArticleSchema.partial().parse(req.body);
       const article = await storage.updateArticle(req.params.id, updateData);
-      
+
       if (!article) {
         return res.status(404).json({ error: "Article not found" });
       }
@@ -169,6 +336,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         status: "success",
         message: `Maqola yangilandi: ${article.title}`,
       });
+
+      // Invalidate cache
+      cache.delete(CACHE_KEYS.PUBLISHED_ARTICLES);
+      cache.delete(CACHE_KEYS.ARTICLE(req.params.id));
 
       res.json(article);
     } catch (error) {
@@ -180,7 +351,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch("/api/articles/:id/publish", requireAuth, async (req, res) => {
     try {
       const article = await storage.publishArticle(req.params.id);
-      
+
       if (!article) {
         return res.status(404).json({ error: "Article not found" });
       }
@@ -214,6 +385,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
+      // Invalidate cache
+      cache.delete(CACHE_KEYS.PUBLISHED_ARTICLES);
+      cache.delete(CACHE_KEYS.ARTICLE(req.params.id));
+
       res.json(article);
     } catch (error) {
       console.error("Error publishing article:", error);
@@ -229,6 +404,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         status: "success",
         message: `Maqola o'chirildi: ${req.params.id}`,
       });
+
+      // Invalidate cache
+      cache.delete(CACHE_KEYS.PUBLISHED_ARTICLES);
+      cache.delete(CACHE_KEYS.ARTICLE(req.params.id));
+
       res.json({ success: true });
     } catch (error) {
       console.error("Error deleting article:", error);
@@ -266,7 +446,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const schema = z.object({ trendId: z.string() });
       const { trendId } = schema.parse(req.body);
-      
+
       await generateArticleFromTrendId(trendId);
       res.json({ success: true });
     } catch (error) {
@@ -287,27 +467,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // RSS article generation endpoints
-  app.post("/api/articles/generate/local-rss", requireAuth, async (req, res) => {
+  app.post("/api/articles/generate/local-rss", requireAuth, aiLimiter, async (req, res) => {
     try {
       const schema = z.object({ feedUrl: z.string().url().optional() });
       const { feedUrl } = schema.parse(req.body);
-      
+
       const selectedFeed = feedUrl || RSS_FEEDS.LOCAL.KUN_UZ;
       const articleData = await generateArticleFromLocalRSS(selectedFeed);
-      
+
       if (!articleData) {
         return res.status(400).json({ error: "Failed to generate article from RSS feed" });
       }
-      
+
       const article = await storage.createArticle(articleData);
-      
+
       await storage.createLog({
         action: "article_generated_local_rss",
         status: "success",
         message: `Mahalliy RSS'dan maqola yaratildi: ${article.title}`,
         metadata: JSON.stringify({ feedUrl: selectedFeed, articleId: article.id }),
       });
-      
+
       res.json(article);
     } catch (error) {
       console.error("Error generating article from local RSS:", error);
@@ -320,27 +500,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/articles/generate/foreign-rss", requireAuth, async (req, res) => {
+  app.post("/api/articles/generate/foreign-rss", requireAuth, aiLimiter, async (req, res) => {
     try {
       const schema = z.object({ feedUrl: z.string().url().optional() });
       const { feedUrl } = schema.parse(req.body);
-      
+
       const selectedFeed = feedUrl || RSS_FEEDS.FOREIGN.BBC_SPORT;
       const articleData = await generateArticleFromForeignRSS(selectedFeed);
-      
+
       if (!articleData) {
         return res.status(400).json({ error: "Failed to generate article from RSS feed" });
       }
-      
+
       const article = await storage.createArticle(articleData);
-      
+
       await storage.createLog({
         action: "article_generated_foreign_rss",
         status: "success",
         message: `Xorijiy RSS'dan maqola yaratildi va tarjima qilindi: ${article.title}`,
         metadata: JSON.stringify({ feedUrl: selectedFeed, articleId: article.id }),
       });
-      
+
       res.json(article);
     } catch (error) {
       console.error("Error generating article from foreign RSS:", error);
@@ -353,11 +533,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/articles/generate/all", requireAuth, async (req, res) => {
+  app.post("/api/articles/generate/all", requireAuth, aiLimiter, async (req, res) => {
     try {
       const results = await generateArticlesFromAllSources();
       const createdArticles = [];
-      
+
       if (results.aiTrend) {
         const article = await storage.createArticle(results.aiTrend);
         createdArticles.push(article);
@@ -367,7 +547,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           message: `AI trend'dan maqola yaratildi: ${article.title}`,
         });
       }
-      
+
       if (results.localRSS) {
         const article = await storage.createArticle(results.localRSS);
         createdArticles.push(article);
@@ -377,7 +557,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           message: `Mahalliy RSS'dan maqola yaratildi: ${article.title}`,
         });
       }
-      
+
       if (results.foreignRSS) {
         const article = await storage.createArticle(results.foreignRSS);
         createdArticles.push(article);
@@ -387,11 +567,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           message: `Xorijiy RSS'dan maqola yaratildi: ${article.title}`,
         });
       }
-      
-      res.json({ 
-        success: true, 
+
+      res.json({
+        success: true,
         articlesCreated: createdArticles.length,
-        articles: createdArticles 
+        articles: createdArticles
       });
     } catch (error) {
       console.error("Error generating articles from all sources:", error);
@@ -401,14 +581,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/rss/feeds", (req, res) => {
     res.json({
-      local: Object.entries(RSS_FEEDS.LOCAL).map(([key, url]) => ({ 
-        key, 
-        url, 
+      local: Object.entries(RSS_FEEDS.LOCAL).map(([key, url]) => ({
+        key,
+        url,
         name: key.replace(/_/g, ' ')
       })),
-      foreign: Object.entries(RSS_FEEDS.FOREIGN).map(([key, url]) => ({ 
-        key, 
-        url, 
+      foreign: Object.entries(RSS_FEEDS.FOREIGN).map(([key, url]) => ({
+        key,
+        url,
         name: key.replace(/_/g, ' ')
       })),
     });
@@ -443,7 +623,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const allUsers = await db.select().from(users);
       const akramjon = allUsers.find(u => u.username === "Akramjon");
       const admin = allUsers.find(u => u.username === "admin");
-      
+
       if (admin && akramjon && admin.id !== akramjon.id) {
         await storage.deleteUser(admin.id);
         console.log("✅ Old admin account deleted");
@@ -464,9 +644,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (success) {
         res.json({ success: true, message: "Telegram test message sent successfully" });
       } else {
-        res.status(503).json({ 
-          success: false, 
-          error: "Telegram not configured or test failed. Check TELEGRAM_BOT_TOKEN and TELEGRAM_CHANNEL_ID." 
+        res.status(503).json({
+          success: false,
+          error: "Telegram not configured or test failed. Check TELEGRAM_BOT_TOKEN and TELEGRAM_CHANNEL_ID."
         });
       }
     } catch (error) {
@@ -479,26 +659,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const articles = await storage.getAllArticles();
       const publishedArticles = articles.filter(a => a.status === "published");
-      
-      const baseUrl = process.env.REPLIT_DEV_DOMAIN 
-        ? `https://${process.env.REPLIT_DEV_DOMAIN}` 
+
+      const baseUrl = process.env.REPLIT_DEV_DOMAIN
+        ? `https://${process.env.REPLIT_DEV_DOMAIN}`
         : "http://localhost:5000";
-      
+
       let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
       xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n';
-      
+
       xml += `  <url>\n`;
       xml += `    <loc>${baseUrl}/</loc>\n`;
       xml += `    <changefreq>daily</changefreq>\n`;
       xml += `    <priority>1.0</priority>\n`;
       xml += `  </url>\n`;
-      
+
       for (const article of publishedArticles) {
         const articleUrl = `${baseUrl}/article/${article.id}`;
-        const lastmod = article.updatedAt 
+        const lastmod = article.updatedAt
           ? new Date(article.updatedAt).toISOString().split('T')[0]
           : new Date().toISOString().split('T')[0];
-        
+
         xml += `  <url>\n`;
         xml += `    <loc>${articleUrl}</loc>\n`;
         xml += `    <lastmod>${lastmod}</lastmod>\n`;
@@ -506,9 +686,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         xml += `    <priority>0.8</priority>\n`;
         xml += `  </url>\n`;
       }
-      
+
       xml += '</urlset>';
-      
+
       res.header('Content-Type', 'application/xml');
       res.send(xml);
     } catch (error) {
