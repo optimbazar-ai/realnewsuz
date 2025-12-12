@@ -83,16 +83,15 @@ export default function Home() {
             <div className="lg:col-span-2">
               <Link href={`/article/${mainArticle.id}/${generateSlug(mainArticle.title)}`}>
                 <article className="group relative overflow-hidden rounded-2xl bg-card border border-border card-hover h-full" data-testid={`article-main-${mainArticle.id}`}>
-                  <div className="relative w-full aspect-[16/9] overflow-hidden">
-                    {mainArticle.imageUrl ? (
+                  <div className="relative w-full aspect-[16/9] overflow-hidden bg-gradient-to-br from-primary via-pink-500 to-purple-600">
+                    {mainArticle.imageUrl && (
                       <img
                         src={mainArticle.imageUrl}
                         alt={mainArticle.title}
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                        onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                        loading="lazy"
+                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        onError={(e) => { (e.target as HTMLImageElement).style.opacity = '0'; }}
                       />
-                    ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-primary via-pink-500 to-purple-600" />
                     )}
                   </div>
                   <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/50 to-transparent" />
@@ -128,16 +127,15 @@ export default function Home() {
               {latestArticles.slice(0, 2).map((article, index) => (
                 <Link key={article.id} href={`/article/${article.id}/${generateSlug(article.title)}`}>
                   <article className={`group relative overflow-hidden rounded-2xl bg-card border border-border card-hover h-full fade-in`} style={{ animationDelay: `${index * 100}ms` }} data-testid={`article-side-${article.id}`}>
-                    <div className="relative w-full aspect-[16/9] overflow-hidden">
-                      {article.imageUrl ? (
+                    <div className="relative w-full aspect-[16/9] overflow-hidden bg-gradient-to-br from-primary via-pink-500 to-purple-600">
+                      {article.imageUrl && (
                         <img
                           src={article.imageUrl}
                           alt={article.title}
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                          onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                          loading="lazy"
+                          className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                          onError={(e) => { (e.target as HTMLImageElement).style.opacity = '0'; }}
                         />
-                      ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-primary via-pink-500 to-purple-600" />
                       )}
                     </div>
                     <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/50 to-transparent" />
@@ -183,16 +181,15 @@ export default function Home() {
                 {latestArticles.slice(2).map((article, index) => (
                   <Link key={article.id} href={`/article/${article.id}/${generateSlug(article.title)}`}>
                     <article className="group rounded-2xl border border-border overflow-hidden card-hover bg-card h-full fade-in" style={{ animationDelay: `${index * 50}ms` }} data-testid={`card-article-${article.id}`}>
-                      <div className="relative w-full aspect-[16/9] overflow-hidden">
-                        {article.imageUrl ? (
+                      <div className="relative w-full aspect-[16/9] overflow-hidden bg-gradient-to-br from-primary via-pink-500 to-purple-600">
+                        {article.imageUrl && (
                           <img
                             src={article.imageUrl}
                             alt={article.title}
-                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                            loading="lazy"
+                            className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                            onError={(e) => { (e.target as HTMLImageElement).style.opacity = '0'; }}
                           />
-                        ) : (
-                          <div className="w-full h-full bg-gradient-to-br from-primary via-pink-500 to-purple-600" />
                         )}
                         <div className="absolute top-3 left-3">
                           <span className="badge-gradient" data-testid={`badge-article-category-${article.id}`}>
