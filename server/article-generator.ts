@@ -112,12 +112,15 @@ export async function generateArticleFromForeignRSS(
 
     const category = await categorizeTrend(translatedArticle.title);
 
-    // Always use Unsplash - external images are blocked by hotlink protection
-    const photo = await searchPhotoForArticle(translatedArticle.title, usedPhotoIds);
-    const imageUrl = photo?.imageUrl || null;
-    const photographerName = photo?.photographerName || null;
-    const photographerUrl = photo?.photographerUrl || null;
-    const photoId = photo?.photoId || null;
+    // Smart image fallback - try original first, then Unsplash
+    const { getWorkingImage } = await import('./image-helper');
+    const imageData = await getWorkingImage(
+      rssArticle.imageUrl,
+      translatedArticle.title,
+      usedPhotoIds
+    );
+
+    console.log(`📷 Image source for "${translatedArticle.title.substring(0, 30)}...": ${imageData.source}`);
 
     return {
       title: translatedArticle.title,
@@ -127,10 +130,10 @@ export async function generateArticleFromForeignRSS(
       trendKeyword: null,
       sourceType: "FOREIGN_RSS",
       sourceUrl: rssArticle.link,
-      imageUrl,
-      photographerName,
-      photographerUrl,
-      photoId,
+      imageUrl: imageData.imageUrl,
+      photographerName: imageData.photographerName,
+      photographerUrl: imageData.photographerUrl,
+      photoId: imageData.photoId,
       status: "draft",
       publishedAt: null,
     };
