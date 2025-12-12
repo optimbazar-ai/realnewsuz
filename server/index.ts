@@ -13,9 +13,38 @@ import { AppError } from "./errors";
 const app = express();
 app.set("trust proxy", 1);
 
-// Security middleware
+// Security middleware with proper CSP for images
 app.use(helmet({
-  contentSecurityPolicy: process.env.NODE_ENV === "production" ? undefined : false,
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
+      imgSrc: [
+        "'self'",
+        "data:",
+        "blob:",
+        "https://images.unsplash.com",
+        "https://*.unsplash.com",
+        "https://platform.theverge.com",
+        "https://cdn.arstechnica.net",
+        "https://ichef.bbci.co.uk",
+        "https://*.bbc.co.uk",
+        "https://*.espn.com",
+        "https://*.skysports.com",
+        "https://*.theguardian.com",
+        "https://*.reuters.com",
+        "https://*.apnews.com",
+        "https://*.gazeta.uz",
+        "https://*",  // Allow all HTTPS images as fallback
+      ],
+      connectSrc: ["'self'", "https://*", "wss://*"],
+      frameSrc: ["'self'"],
+      objectSrc: ["'none'"],
+      upgradeInsecureRequests: [],
+    },
+  },
   crossOriginEmbedderPolicy: false,
 }));
 
