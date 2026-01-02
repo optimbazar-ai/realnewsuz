@@ -1,4 +1,4 @@
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Search, Menu, X, Sparkles } from "lucide-react";
 import { useState } from "react";
@@ -18,6 +18,7 @@ const CATEGORIES = [
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [, setLocation] = useLocation();
 
   return (
     <>
@@ -78,7 +79,8 @@ export function Header() {
                   if (e.key === 'Enter') {
                     const query = (e.target as HTMLInputElement).value.trim();
                     if (query) {
-                      window.location.href = `/?search=${encodeURIComponent(query)}`;
+                      setLocation(`/?search=${encodeURIComponent(query)}`);
+                      setSearchOpen(false);
                     }
                   }
                 }}

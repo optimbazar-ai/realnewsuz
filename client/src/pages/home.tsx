@@ -17,17 +17,36 @@ const generateSlug = (title: string): string => {
     .slice(0, 50);
 };
 
-export default function Home() {
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState<string>("");
+import { useLocation } from "wouter";
 
-  // Fetch articles with category filter
+export default function Home() {
+  const [location] = useLocation();
+
+  // Extract query params from location string manually since wouter doesn't have useSearch
+  const searchParams = new URLSearchParams(window.location.search);
+  const selectedCategory = searchParams.get("category");
+  const searchQuery = searchParams.get("search");
+
+  // Fetch articles with category filter and search
   const { data: articlesResponse, isLoading: articlesLoading } = useQuery<{ articles: Article[], total: number }>({
-    queryKey: ["/api/articles", selectedCategory],
+    queryKey: ["/api/articles", selectedCategory, searchQuery],
     queryFn: async () => {
-      const url = selectedCategory
-        ? `/api/articles?category=${encodeURIComponent(selectedCategory)}`
-        : "/api/articles";
+      let url = "/api/articles";
+      const params = new URLSearchParams();
+
+      if (selectedCategory) {
+        params.append("category", selectedCategory);
+      }
+
+      if (searchQuery) {
+        params.append("search", searchQuery);
+      }
+
+      const queryString = params.toString();
+      if (queryString) {
+        url += `?${queryString}`;
+      }
+
       const res = await fetch(url);
       return res.json();
     }
@@ -239,13 +258,9 @@ export default function Home() {
               <div className="text-center py-16 bg-muted/30 rounded-xl">
                 <p className="text-muted-foreground text-lg">Hozircha yangiliklar yo'q</p>
                 {selectedCategory && (
-                  <button
-                    onClick={() => setSelectedCategory(null)}
-                    className="mt-4 text-primary hover:underline text-sm"
-                    data-testid="button-clear-filter"
-                  >
+                  <Link href="/" className="mt-4 text-primary hover:underline text-sm inline-block" data-testid="button-clear-filter">
                     Filterni tozalash
-                  </button>
+                  </Link>
                 )}
               </div>
             )}

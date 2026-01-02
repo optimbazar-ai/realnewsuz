@@ -371,10 +371,11 @@ Sitemap: ${baseUrl}/sitemap.xml
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 50;
       const category = req.query.category as string;
+      const search = (req.query.search as string || "").toLowerCase().trim();
 
-      // Check cache first (only for default requests)
+      // Check cache first (only for default requests without filters)
       const cacheKey = category ? `articles_${category}` : CACHE_KEYS.PUBLISHED_ARTICLES;
-      if (!category && page === 1 && limit === 50) {
+      if (!category && !search && page === 1 && limit === 50) {
         const cached = cache.get<any[]>(cacheKey);
         if (cached) {
           return res.json(cached);
@@ -386,6 +387,15 @@ Sitemap: ${baseUrl}/sitemap.xml
       // Filter by category
       if (category) {
         articles = articles.filter(a => a.category === category);
+      }
+
+      // Filter by search query
+      if (search) {
+        articles = articles.filter(article =>
+          article.title.toLowerCase().includes(search) ||
+          article.excerpt?.toLowerCase().includes(search) ||
+          article.content.toLowerCase().includes(search)
+        );
       }
 
       // Paginate
@@ -401,8 +411,8 @@ Sitemap: ${baseUrl}/sitemap.xml
         totalPages: Math.ceil(total / limit)
       };
 
-      // Cache for 1 minute (only full list)
-      if (!category && page === 1 && limit === 50) {
+      // Cache for 1 minute (only full list without filters)
+      if (!category && !search && page === 1 && limit === 50) {
         cache.set(cacheKey, paginatedArticles, CACHE_TTL.ARTICLES);
       }
 

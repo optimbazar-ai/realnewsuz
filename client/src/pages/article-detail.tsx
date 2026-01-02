@@ -26,9 +26,13 @@ export default function ArticleDetail() {
     enabled: !!articleId,
   });
 
-  const { data: relatedArticles = [] } = useQuery<Article[]>({
+  const { data: relatedArticlesResponse } = useQuery<{ articles: Article[] }>({
     queryKey: ["/api/articles"],
   });
+
+  const relatedArticles = Array.isArray(relatedArticlesResponse?.articles)
+    ? relatedArticlesResponse.articles
+    : (Array.isArray(relatedArticlesResponse) ? relatedArticlesResponse : []);
 
   // Generate slug from title
   const generateSlug = (title: string): string => {
