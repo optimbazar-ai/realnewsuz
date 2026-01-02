@@ -311,7 +311,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Sitemap.xml endpoint
   app.get("/sitemap.xml", async (req, res) => {
     try {
-      const baseUrl = process.env.BASE_URL || "https://realnews.uz";
+      const baseUrl = process.env.BASE_URL || (process.env.REPLIT_DOMAINS
+        ? `https://${process.env.REPLIT_DOMAINS.split(',')[0]}`
+        : "https://realnews.uz");
       const articles = await storage.getPublishedArticles();
 
       let sitemap = `<?xml version="1.0" encoding="UTF-8"?>

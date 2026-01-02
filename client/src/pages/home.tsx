@@ -70,6 +70,22 @@ export default function Home() {
         <meta name="twitter:title" content={pageTitle} />
         <meta name="twitter:description" content={pageDescription} />
         <meta name="twitter:image" content={ogImage} />
+        <link rel="canonical" href={baseUrl} />
+
+        {/* JSON-LD Structured Data for Website */}
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "WebSite",
+            "name": "Real News UZ",
+            "url": baseUrl,
+            "potentialAction": {
+              "@type": "SearchAction",
+              "target": `${baseUrl}/search?q={search_term_string}`,
+              "query-input": "required name=search_term_string"
+            }
+          })}
+        </script>
       </Helmet>
 
       <Header />

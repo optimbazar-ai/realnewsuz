@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useRoute, Link } from "wouter";
+import { useRoute, Link, useLocation } from "wouter";
 import React from "react";
 import { Article } from "@shared/schema";
 import { ArrowLeft, Clock, Tag, Share2, BookOpen } from "lucide-react";
@@ -19,7 +19,7 @@ export default function ArticleDetail() {
   const articleId = params?.id;
   const slug = params?.slug;
   const { toast } = useToast();
-  const [, setLocation] = useRoute();
+  const [, setLocation] = useLocation();
 
   const { data: article, isLoading } = useQuery<Article>({
     queryKey: [`/api/articles/${articleId}`],
@@ -162,6 +162,9 @@ export default function ArticleDetail() {
         <meta name="twitter:title" content={article.title} />
         <meta name="twitter:description" content={pageDescription} />
         <meta name="twitter:image" content={pageImage} />
+
+        <link rel="canonical" href={pageUrl} />
+        <meta name="keywords" content={`${article.category}, ${article.trendKeyword || ''}, yangiliklar, O'zbekiston, Real News, ${article.title.split(' ').slice(0, 5).join(', ')}`} />
 
         {article.publishedAt && (
           <meta property="article:published_time" content={new Date(article.publishedAt).toISOString()} />
