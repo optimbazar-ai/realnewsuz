@@ -38,9 +38,13 @@ export default function Home() {
   });
 
   // Handle both old array format and new object format
-  const articles = Array.isArray(articlesResponse)
-    ? articlesResponse
-    : (articlesResponse?.articles || []);
+  const articlesData = articlesResponse;
+  const articlesArray = Array.isArray(articlesData)
+    ? articlesData
+    : (articlesData?.articles || []);
+
+  // Ensure we have an array before filtering
+  const articles = Array.isArray(articlesArray) ? articlesArray : [];
 
   const mainArticle = articles[0];
   const latestArticles = articles.slice(1);

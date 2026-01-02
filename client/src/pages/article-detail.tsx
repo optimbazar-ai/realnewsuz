@@ -353,7 +353,7 @@ export default function ArticleDetail() {
                     </div>
                     <div className="grid grid-cols-1 gap-4">
                       {related.map((relatedArticle) => (
-                        <Link key={relatedArticle.id} href={`/article/${relatedArticle.id}`}>
+                        <Link key={relatedArticle.id} href={`/article/${relatedArticle.id}/${generateSlug(relatedArticle.title)}`}>
                           <Card className="overflow-hidden hover-elevate transition-all bg-card border border-border" data-testid={`card-related-${relatedArticle.id}`}>
                             <div className="flex gap-4 p-4">
                               <div
@@ -399,7 +399,7 @@ export default function ArticleDetail() {
                     .filter(a => a.status === "published" && a.id !== article.id)
                     .slice(0, 5)
                     .map((sideArticle) => (
-                      <Link key={sideArticle.id} href={`/article/${sideArticle.id}`}>
+                      <Link key={sideArticle.id} href={`/article/${sideArticle.id}/${generateSlug(sideArticle.title)}`}>
                         <div className="group pb-4 border-b border-border last:border-0 last:pb-0 hover-elevate rounded p-2 -m-2">
                           <h4 className="font-semibold text-sm line-clamp-2 mb-2 group-hover:text-primary transition-colors leading-snug">
                             {sideArticle.title}
