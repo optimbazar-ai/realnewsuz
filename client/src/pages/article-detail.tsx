@@ -146,7 +146,8 @@ export default function ArticleDetail() {
 
   const pageTitle = `${article.title} - Real News`;
   const pageDescription = article.excerpt || article.content.slice(0, 155);
-  const pageImage = article.imageUrl || `${baseUrl}/og-default.jpg`;
+  // Use dynamic OG image generator
+  const pageImage = `${baseUrl}/api/og/${article.id}?v=${new Date(article.updatedAt || article.publishedAt || new Date()).getTime()}`;
   const pageUrl = `${baseUrl}/article/${article.id}`;
 
   return (

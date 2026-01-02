@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { Article, Trend } from "@shared/schema";
 import { Clock, Flame, TrendingUp, Calendar } from "lucide-react";
@@ -19,6 +19,8 @@ const generateSlug = (title: string): string => {
 
 import { useLocation } from "wouter";
 
+import { getOptimizedImageUrl } from "@/lib/image-optimizer";
+
 export default function Home() {
   const [location] = useLocation();
 
@@ -27,12 +29,22 @@ export default function Home() {
   const selectedCategory = searchParams.get("category");
   const searchQuery = searchParams.get("search");
 
-  // Fetch articles with category filter and search
-  const { data: articlesResponse, isLoading: articlesLoading } = useQuery<{ articles: Article[], total: number }>({
+  // Fetch articles with category filter and search using Infinite Query
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading: articlesLoading,
+    status
+  } = useInfiniteQuery({
     queryKey: ["/api/articles", selectedCategory, searchQuery],
-    queryFn: async () => {
+    queryFn: async ({ pageParam = 1 }) => {
       let url = "/api/articles";
       const params = new URLSearchParams();
+
+      params.append("page", pageParam.toString());
+      params.append("limit", "12");
 
       if (selectedCategory) {
         params.append("category", selectedCategory);
@@ -49,21 +61,22 @@ export default function Home() {
 
       const res = await fetch(url);
       return res.json();
-    }
+    },
+    getNextPageParam: (lastPage: any) => {
+      if (lastPage.totalPages && lastPage.page < lastPage.totalPages) {
+        return lastPage.page + 1;
+      }
+      return undefined;
+    },
+    initialPageParam: 1,
   });
 
   const { data: trends = [], isLoading: trendsLoading } = useQuery<Trend[]>({
     queryKey: ["/api/trends"],
   });
 
-  // Handle both old array format and new object format
-  const articlesData = articlesResponse;
-  const articlesArray = Array.isArray(articlesData)
-    ? articlesData
-    : (articlesData?.articles || []);
-
-  // Ensure we have an array before filtering
-  const articles = Array.isArray(articlesArray) ? articlesArray : [];
+  // Handle data flattening from infinite query pages
+  const articles = data?.pages.flatMap(page => page.articles) || [];
 
   const mainArticle = articles[0];
   const latestArticles = articles.slice(1);
@@ -125,9 +138,9 @@ export default function Home() {
                   <div className="relative w-full aspect-[16/9] overflow-hidden bg-gradient-to-br from-primary via-pink-500 to-purple-600">
                     {mainArticle.imageUrl && (
                       <img
-                        src={mainArticle.imageUrl}
+                        src={getOptimizedImageUrl(mainArticle.imageUrl, 1200)}
                         alt={mainArticle.title}
-                        loading="lazy"
+                        loading="eager"
                         className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                         onError={(e) => { (e.target as HTMLImageElement).style.opacity = '0'; }}
                       />
@@ -169,13 +182,18 @@ export default function Home() {
                     <div className="relative w-full aspect-[16/9] overflow-hidden bg-gradient-to-br from-primary via-pink-500 to-purple-600">
                       {article.imageUrl && (
                         <img
-                          src={article.imageUrl}
+                          src={getOptimizedImageUrl(article.imageUrl, 600)}
                           alt={article.title}
                           loading="lazy"
                           className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                           onError={(e) => { (e.target as HTMLImageElement).style.opacity = '0'; }}
                         />
                       )}
+                      <div className="absolute top-3 left-3">
+                        <span className="badge-gradient" data-testid={`badge-article-category-${article.id}`}>
+                          {article.category}
+                        </span>
+                      </div>
                     </div>
                     <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/50 to-transparent" />
                     <div className="absolute bottom-0 left-0 right-0 p-5">
@@ -205,7 +223,7 @@ export default function Home() {
               <h2 className="text-3xl font-bold">So'nggi yangiliklar</h2>
             </div>
 
-            {articlesLoading ? (
+            {articlesLoading && !isFetchingNextPage ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {[1, 2, 3, 4].map((i) => (
                   <div key={i} className="rounded-xl border border-border p-4">
@@ -216,44 +234,61 @@ export default function Home() {
                 ))}
               </div>
             ) : latestArticles.length > 2 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {latestArticles.slice(2).map((article, index) => (
-                  <Link key={article.id} href={`/article/${article.id}/${generateSlug(article.title)}`}>
-                    <article className="group rounded-2xl border border-border overflow-hidden card-hover bg-card h-full fade-in" style={{ animationDelay: `${index * 50}ms` }} data-testid={`card-article-${article.id}`}>
-                      <div className="relative w-full aspect-[16/9] overflow-hidden bg-gradient-to-br from-primary via-pink-500 to-purple-600">
-                        {article.imageUrl && (
-                          <img
-                            src={article.imageUrl}
-                            alt={article.title}
-                            loading="lazy"
-                            className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                            onError={(e) => { (e.target as HTMLImageElement).style.opacity = '0'; }}
-                          />
-                        )}
-                        <div className="absolute top-3 left-3">
-                          <span className="badge-gradient" data-testid={`badge-article-category-${article.id}`}>
-                            {article.category}
-                          </span>
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {latestArticles.slice(2).map((article, index) => (
+                    <Link key={article.id} href={`/article/${article.id}/${generateSlug(article.title)}`}>
+                      <article className="group rounded-2xl border border-border overflow-hidden card-hover bg-card h-full fade-in" style={{ animationDelay: `${index * 50}ms` }} data-testid={`card-article-${article.id}`}>
+                        <div className="relative w-full aspect-[16/9] overflow-hidden bg-gradient-to-br from-primary via-pink-500 to-purple-600">
+                          {article.imageUrl && (
+                            <img
+                              src={getOptimizedImageUrl(article.imageUrl, 600)}
+                              alt={article.title}
+                              loading="lazy"
+                              className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                              onError={(e) => { (e.target as HTMLImageElement).style.opacity = '0'; }}
+                            />
+                          )}
+                          <div className="absolute top-3 left-3">
+                            <span className="badge-gradient" data-testid={`badge-article-category-${article.id}`}>
+                              {article.category}
+                            </span>
+                          </div>
                         </div>
-                      </div>
-                      <div className="p-5">
-                        <div className="flex items-center gap-2 mb-3">
-                          <span className="text-xs text-muted-foreground flex items-center gap-1 bg-muted px-2 py-1 rounded-full">
-                            <Clock className="h-3 w-3" />
-                            {article.publishedAt && format(new Date(article.publishedAt), "HH:mm")}
-                          </span>
+                        <div className="p-5">
+                          <div className="flex items-center gap-2 mb-3">
+                            <span className="text-xs text-muted-foreground flex items-center gap-1 bg-muted px-2 py-1 rounded-full">
+                              <Clock className="h-3 w-3" />
+                              {article.publishedAt && format(new Date(article.publishedAt), "HH:mm")}
+                            </span>
+                          </div>
+                          <h3 className="font-bold text-lg mb-3 line-clamp-2 group-hover:text-primary transition-colors duration-300 leading-tight">
+                            {article.title}
+                          </h3>
+                          <p className="text-muted-foreground text-sm line-clamp-2 leading-relaxed">
+                            {article.excerpt}
+                          </p>
                         </div>
-                        <h3 className="font-bold text-lg mb-3 line-clamp-2 group-hover:text-primary transition-colors duration-300 leading-tight">
-                          {article.title}
-                        </h3>
-                        <p className="text-muted-foreground text-sm line-clamp-2 leading-relaxed">
-                          {article.excerpt}
-                        </p>
-                      </div>
-                    </article>
-                  </Link>
-                ))}
-              </div>
+                      </article>
+                    </Link>
+                  ))}
+                </div>
+
+                {/* Load More Button */}
+                {hasNextPage && (
+                  <div className="mt-8 text-center">
+                    <Button
+                      onClick={() => fetchNextPage()}
+                      disabled={isFetchingNextPage}
+                      variant="outline"
+                      size="lg"
+                      className="w-full md:w-auto"
+                    >
+                      {isFetchingNextPage ? "Yuklanmoqda..." : "Ko'proq yangiliklar"}
+                    </Button>
+                  </div>
+                )}
+              </>
             ) : (
               <div className="text-center py-16 bg-muted/30 rounded-xl">
                 <p className="text-muted-foreground text-lg">Hozircha yangiliklar yo'q</p>

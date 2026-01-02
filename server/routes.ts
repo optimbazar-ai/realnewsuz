@@ -451,6 +451,29 @@ Sitemap: ${baseUrl}/sitemap.xml
     }
   });
 
+  // Dynamic OG Image endpoint
+  app.get("/api/og/:id", async (req, res) => {
+    try {
+      const article = await storage.getArticle(req.params.id);
+
+      if (!article) {
+        return res.status(404).send("Not found");
+      }
+
+      // Cache for 1 hour (images are heavy)
+      res.setHeader("Cache-Control", "public, max-age=3600");
+      res.setHeader("Content-Type", "image/png");
+
+      const { generateOgImage } = await import("./services/og-service");
+      const imageBuffer = await generateOgImage(article);
+
+      res.send(imageBuffer);
+    } catch (error) {
+      console.error("Error generating OG image:", error);
+      res.status(500).send("Error generating image");
+    }
+  });
+
   app.patch("/api/articles/:id", requireAuth, async (req, res) => {
     try {
       const updateData = insertArticleSchema.partial().parse(req.body);
