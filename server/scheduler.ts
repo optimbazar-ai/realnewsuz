@@ -10,10 +10,39 @@ export function initializeScheduler() {
   cron.schedule("0 1,5,9,13,17,21 * * *", async () => {
     console.log("📰 Auto-generating RSS articles...");
     try {
+      // 1. Generate drafts
       await autoGenerateRSSArticles();
       console.log("✅ RSS articles generated successfully");
+
+      // 2. Publish drafts and send to Telegram (logic copied from routes.ts)
+      const drafts = await storage.getDraftArticles();
+      let publishedCount = 0;
+
+      // Import service dynamically to avoid circular dependencies if any
+      const { sendArticleToChannel } = await import("./services/telegram-service");
+      const { cache, CACHE_KEYS } = await import("./cache");
+
+      for (const draft of drafts.slice(0, 3)) { // Publish up to 3 articles
+        const published = await storage.updateArticle(draft.id, {
+          status: "published",
+          publishedAt: new Date(),
+        });
+
+        if (published) {
+          publishedCount++;
+          // Send to Telegram channel
+          await sendArticleToChannel(published);
+          console.log(`🚀 Published and sent to Telegram: ${published.title}`);
+        }
+      }
+
+      if (publishedCount > 0) {
+        cache.delete(CACHE_KEYS.PUBLISHED_ARTICLES);
+        console.log(`✅ Scheduler: ${publishedCount} articles published and sent to Telegram`);
+      }
+
     } catch (error) {
-      console.error("❌ Error generating RSS articles:", error);
+      console.error("❌ Error generating/publishing RSS articles:", error);
     }
   });
 
