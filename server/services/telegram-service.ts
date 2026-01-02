@@ -35,9 +35,9 @@ export async function sendArticleToChannel(article: Article): Promise<boolean> {
   }
 
   try {
-    const siteUrl = process.env.REPLIT_DOMAINS 
+    const siteUrl = process.env.BASE_URL || (process.env.REPLIT_DOMAINS 
       ? `https://${process.env.REPLIT_DOMAINS.split(',')[0]}`
-      : 'https://real-news.uz';
+      : 'https://realnews.uz');
     
     const slug = generateSlug(article.title);
     const articleUrl = `${siteUrl}/article/${article.id}/${slug}`;
