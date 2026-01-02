@@ -1,5 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import fs from "fs";
+import path from "path";
 import { storage } from "./storage";
 import { db } from "./db";
 import { users } from "@shared/schema";
@@ -807,14 +809,11 @@ Sitemap: ${baseUrl}/sitemap.xml
     }
   });
 
-  app.get("/api/sitemap.xml", async (req, res) => {
+  // Sitemap - Root URL
+  app.get("/sitemap.xml", async (req, res) => {
     try {
-      const articles = await storage.getAllArticles();
-      const publishedArticles = articles.filter(a => a.status === "published");
-
-      const baseUrl = process.env.REPLIT_DEV_DOMAIN
-        ? `https://${process.env.REPLIT_DEV_DOMAIN}`
-        : "http://localhost:5000";
+      const articles = await storage.getPublishedArticles();
+      const baseUrl = "https://realnews.uz";
 
       let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
       xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n';
@@ -825,11 +824,20 @@ Sitemap: ${baseUrl}/sitemap.xml
       xml += `    <priority>1.0</priority>\n`;
       xml += `  </url>\n`;
 
-      for (const article of publishedArticles) {
-        const articleUrl = `${baseUrl}/article/${article.id}`;
+      for (const article of articles) {
+        // Same slug logic as client
+        const slug = article.title
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-+|-+$/g, '')
+          .slice(0, 100);
+
+        const articleUrl = `${baseUrl}/article/${article.id}/${slug}`;
         const lastmod = article.updatedAt
           ? new Date(article.updatedAt).toISOString().split('T')[0]
-          : new Date().toISOString().split('T')[0];
+          : article.publishedAt
+            ? new Date(article.publishedAt).toISOString().split('T')[0]
+            : new Date().toISOString().split('T')[0];
 
         xml += `  <url>\n`;
         xml += `    <loc>${articleUrl}</loc>\n`;
@@ -846,6 +854,83 @@ Sitemap: ${baseUrl}/sitemap.xml
     } catch (error) {
       console.error("Error generating sitemap:", error);
       res.status(500).json({ error: "Failed to generate sitemap" });
+    }
+  });
+
+  // SEO Injection for Article Pages (Server-Side Rendering for Meta Tags)
+  // This intercepts request for article pages and injects real meta tags into index.html
+  // Use explicit params so req.params.id is typed correctly
+  app.get("/article/:id/:slug?", async (req, res, next) => {
+    // Only handle direct document requests, not API or assets
+    if (req.headers.accept && !req.headers.accept.includes("text/html")) {
+      return next();
+    }
+
+    try {
+      const articleId = req.params.id;
+      // Fetch article
+      const article = await storage.getArticle(articleId);
+
+      // If no article (or DB error), explicitly let client handle 404 (by sending standard index.html)
+      // We do NOT send 404 here because client app might have its own 404 page logic
+      if (!article) {
+        return next();
+      }
+
+      // Determine path to index.html
+      // In production, it is in public folder. In dev, we might need a different approach.
+      // But assuming 'npm run build' was run, 'dist/public/index.html' or 'client/index.html'?
+
+      // We will read the TEMPLATE.
+      // In production: dist/public/index.html
+      // In dev: client/index.html
+
+      let templatePath;
+      if (process.env.NODE_ENV === "production" || fs.existsSync(path.resolve("dist/public/index.html"))) {
+        templatePath = path.resolve("dist/public/index.html");
+      } else {
+        // In dev, usually we use client/index.html
+        // But note: In dev, Vite transforms it. If we read raw file, it won't work (main.tsx wont load).
+        // So for DEV environment, we often SKIP this injection or use Vite's transform.
+        // Since user cares about SEO (Production), we prioritize Prod flow.
+        templatePath = path.resolve("client/index.html");
+      }
+
+      if (!fs.existsSync(templatePath)) {
+        console.warn("Could not find index.html for SEO injection");
+        return next();
+      }
+
+      let html = await fs.promises.readFile(templatePath, "utf-8");
+
+      // Replace Meta Tags
+      const baseUrl = "https://realnews.uz"; // Ideally env
+      const pageTitle = `${article.title.replace(/"/g, '&quot;')} - Real News`;
+      const pageDescription = (article.excerpt || article.content.substring(0, 150)).replace(/"/g, '&quot;');
+      // Use dynamic OG image
+      const pageImage = `${baseUrl}/api/og/${article.id}?v=${new Date(article.updatedAt || new Date()).getTime()}`;
+
+      // We look for standard meta tags and replace them
+      // Or we can simple replace the PLACEHOLDERS if we have them, 
+      // but index.html has defaults.
+
+      // Strategy: Replace specific lines or use regex.
+      // index.html has: <meta property="og:title" content="..." />
+
+      html = html
+        .replace(/<title>.*?<\/title>/, `<title>${pageTitle}</title>`)
+        .replace(/property="og:title" content=".*?"/, `property="og:title" content="${pageTitle}"`)
+        .replace(/property="og:description" content=".*?"/, `property="og:description" content="${pageDescription}"`)
+        .replace(/property="og:image" content=".*?"/, `property="og:image" content="${pageImage}"`)
+        .replace(/name="twitter:title" content=".*?"/, `name="twitter:title" content="${pageTitle}"`)
+        .replace(/name="twitter:description" content=".*?"/, `name="twitter:description" content="${pageDescription}"`)
+        .replace(/name="twitter:image" content=".*?"/, `name="twitter:image" content="${pageImage}"`);
+
+      res.setHeader("Content-Type", "text/html");
+      res.send(html);
+    } catch (error) {
+      console.error("Error verifying article for SEO:", error);
+      next(); // Fallback to standard flow
     }
   });
 
