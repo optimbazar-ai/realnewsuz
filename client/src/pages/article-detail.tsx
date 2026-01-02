@@ -40,7 +40,7 @@ export default function ArticleDetail() {
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-+|-+$/g, '')
-      .slice(0, 50);
+      .slice(0, 100);
   };
 
   // Redirect to SEO-friendly URL if slug is missing

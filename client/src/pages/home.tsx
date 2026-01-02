@@ -14,7 +14,7 @@ const generateSlug = (title: string): string => {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
-    .slice(0, 50);
+    .slice(0, 100); // Increased limit to avoid cutting words like 'superqahramon'
 };
 
 import { useLocation } from "wouter";
